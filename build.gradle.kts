@@ -19,11 +19,26 @@ dependencies {
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_1_8
 }
+
+sourceSets{
+
+}
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
+    }
+    jar{
+        manifest {
+            attributes( "Main-Class: BaseEdit2AppKt")
+        }
+        from(sourceSets.names)
+        //from(configurations.compile.fileCollection().map { if(it.isDirectory) it else zipTree(it) })
+        //from(configurations.compile.get().fileCollection().map{ if(it.isDirectory) it else zipTree(it)})
+    }
+    register("Post"){
+
     }
 }

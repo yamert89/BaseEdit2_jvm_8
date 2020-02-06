@@ -163,6 +163,8 @@ class ParentView : View(){
                             error("Невалидное значение")
                             editModel.rollbackSelected()
                         }
+                        val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<Double?>
+                        property.value = it.newValue
                     }
                     colum = column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
                     readonlyColumn("К. земель", Area::categoryArea)
@@ -172,6 +174,8 @@ class ParentView : View(){
                             error("Невалидное значение")
                             editModel.rollbackSelected()
                         }
+                        val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<String?>
+                        property.value = it.newValue
                     }
                     selectionModel.selectedItemProperty().onChange {
                         selected = this.selectedItem
