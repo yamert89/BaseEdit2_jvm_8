@@ -3,6 +3,7 @@ import javafx.beans.property.IntegerProperty
 import javafx.beans.property.Property
 import javafx.geometry.Insets
 import javafx.scene.control.*
+import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.layout.Priority
@@ -67,8 +68,21 @@ class ParentView : View(){
             }
 
 
-             button("Добавить"){
-                 hboxConstraints { margin = Insets(10.0) }
+             button{
+                 val imageView = resources.imageview("AddGreenButton.ico").apply {
+                     fitHeight = 32.0
+                     fitWidth = 32.0
+                 }
+                 graphic = imageView
+
+                 addClass("icon-only")
+
+
+                 hboxConstraints {
+                     margin = Insets(10.0)
+                     prefWidth = 32.0
+
+                 }
                 action {
                     if(selected == null) {
                         println("selected is null")
