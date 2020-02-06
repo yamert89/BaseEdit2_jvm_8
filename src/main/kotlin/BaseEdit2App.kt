@@ -6,10 +6,12 @@ import javafx.scene.control.*
 import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
+import javafx.scene.layout.Background
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
+
 
 
 fun main() {
@@ -47,95 +49,193 @@ class ParentView : View(){
 
         hbox {
 
-            button ("Открыть"){
-                action {
-                    val files = chooseFile("Выберите файл", owner = primaryStage, mode = FileChooserMode.Single, filters = arrayOf())
-                    if (files.isEmpty()) return@action
-                    controller.tableData.clear()
-                    //todo filters
-
-
-                    runAsyncWithProgress/*(progress = progressBar)*/ {
-                        controller.initData(files[0])
-                        println("end init")
-                    }ui{
-                       println("visible false")
-                    }
-
-                }
-                hboxConstraints { margin = Insets(10.0) }
-
-            }
-
-
-             button{
-                 val imageView = resources.imageview("AddGreenButton.ico").apply {
-                     fitHeight = 32.0
-                     fitWidth = 32.0
-                 }
-                 graphic = imageView
-
-                 addClass("icon-only")
-
-
-                 hboxConstraints {
-                     margin = Insets(10.0)
-                     prefWidth = 32.0
-
-                 }
-                action {
-                    if(selected == null) {
-                        println("selected is null")
-                        return@action
-                    }
-                    var item = selected!!
-                    item = Area(0, item.numberKv, 0.0, item.categoryArea, "-", item.ozu, item.lesb, item.rawData)
-
-                    controller.tableData.add(selectedRow, item)
-
-                    tableView!!.selectionModel!!.select(selectedRow,  tableView!!.columns[1])
+            buttonbar {
+                hboxConstraints {
+                    padding = Insets(1.0)
+                    minHeight = 24.0
+                    prefHeight = 24.0
+                    margin = Insets(5.0)
 
                 }
 
-                shortcut(KeyCodeCombination(KeyCode.ADD))
+                val buttonFontSize = Dimension(7.0, Dimension.LinearUnits.pt)
 
-            }
-            button("Удалить"){
-                hboxConstraints { margin = Insets(10.0) }
-                action {
-                    alert(Alert.AlertType.CONFIRMATION, "Удалить?", owner = primaryStage, actionFn = {buttonType ->
-                        if (buttonType == ButtonType.OK) {
-                            controller.tableData.removeAt(selectedRow)
-                            tableView!!.selectionModel.select(selectedRow + 1, selectedCol)
 
+
+
+                button ("Открыть"){
+
+                    style{
+                        fontSize = buttonFontSize
+                    }
+
+                    onHover {
+                        println(this.width)
+                        println(this.prefWidth)
+                        println(this.maxWidth)
+                    }
+
+                    graphic = resources.imageview("/PNG/New Document.png").apply {
+                        fitHeight = 24.0
+                        fitWidth = 24.0
+                    }
+                    action {
+                        val files = chooseFile("Выберите файл", owner = primaryStage, mode = FileChooserMode.Single, filters = arrayOf())
+                        if (files.isEmpty()) return@action
+                        controller.tableData.clear()
+                        //todo filters
+
+
+                        runAsyncWithProgress/*(progress = progressBar)*/ {
+                            controller.initData(files[0])
+                            println("end init")
+                        }ui{
+                            println("visible false")
                         }
-                    } )
+
+                    }
+                    //hboxConstraints { margin = Insets(10.0) }
 
                 }
-                shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
-            }
-            button("Сохранить") {
-                hboxConstraints { margin = Insets(10.0) }
-                action {
-                    if(!controller.preSaveCheck()) return@action
-                    runAsyncWithProgress {
-                        controller.save(null)
+
+
+                button("Добавить"){
+                    style{
+                        fontSize = buttonFontSize
+                    }
+
+                    /*style{
+                        maxHeight = Dimension(10.0, Dimension.LinearUnits.px)
+                        maxWidth = Dimension(10.0, Dimension.LinearUnits.px)
+                        backgroundRadius = multi(box(Dimension(10.0, Dimension.LinearUnits.px)))
+                        //background = Background.EMPTY
+
+                    }*/
+
+                    /*onHover {
+                        style{
+                            backgroundColor += c("#000000")
+                        }
+                    }*/
+
+                    //maxWidth = 10.0
+                    //prefWidth = 10.0
+
+                    //prefHeight = 100.0
+
+
+
+
+
+
+                    val imageView = resources.imageview("/PNG/Add Green Button.png")
+                    imageView.fitHeight = 24.0
+                    imageView.fitWidth = 24.0
+                    graphic = imageView
+                    /*graphic = FontAwesomeIconView(PLUS_CIRCLE).apply {
+                        style {
+                            fill = c("#818181")
+                        }
+                        glyphSize = 18
+                    }
+*/
+                    //addClass("icon-only")
+
+
+                    /*hboxConstraints {
+                        margin = Insets(10.0)
+                        prefWidth = 32.0
+
+                    }*/
+                    action {
+                        if(selected == null) {
+                            println("selected is null")
+                            return@action
+                        }
+                        var item = selected!!
+                        item = Area(0, item.numberKv, 0.0, item.categoryArea, "-", item.ozu, item.lesb, item.rawData)
+
+                        controller.tableData.add(selectedRow, item)
+
+                        tableView!!.selectionModel!!.select(selectedRow,  tableView!!.columns[1])
+
+                    }
+
+                    shortcut(KeyCodeCombination(KeyCode.ADD))
+
+                }
+                button("Удалить"){
+                    style{
+                        fontSize = buttonFontSize
+                    }
+                    //hboxConstraints { margin = Insets(10.0) }
+                    graphic = resources.imageview("/PNG/Minus Green Button.png").apply {
+                        fitHeight = 24.0
+                        fitWidth = 24.0
+                    }
+                    action {
+                        alert(Alert.AlertType.CONFIRMATION, "Удалить?", owner = primaryStage, actionFn = {buttonType ->
+                            if (buttonType == ButtonType.OK) {
+                                controller.tableData.removeAt(selectedRow)
+                                tableView!!.selectionModel.select(selectedRow + 1, selectedCol)
+
+                            }
+                        } )
+
+                    }
+                    shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
+                }
+                button("Сохранить") {
+                    style{
+                        fontSize = buttonFontSize
+                    }
+                    graphic = resources.imageview("/PNG/Export To Document.png").apply {
+                        fitHeight = 24.0
+                        fitWidth = 24.0
+                    }
+                    //hboxConstraints { margin = Insets(10.0) }
+                    action {
+                        if(!controller.preSaveCheck()) return@action
+                        runAsyncWithProgress {
+                            controller.save(null)
+                        }
+                    }
+
+                }
+
+                button("Сохранить как..") { //todo refactoring buttons
+                    style{
+                        fontSize = buttonFontSize
+                    }
+                    graphic = resources.imageview("/PNG/Export To Movie Document.png").apply{
+                        fitHeight = 24.0
+                        fitWidth = 24.0
+                    }
+                    //hboxConstraints { margin = Insets(10.0) }
+                    action {
+                        if(!controller.preSaveCheck()) return@action
+                        val list = chooseFile("Выберите файл", mode = FileChooserMode.Save, filters = arrayOf(), owner = primaryStage)
+                        val path = list[0].absolutePath
+                        runAsyncWithProgress {
+                            controller.save(path)
+                        }
                     }
                 }
 
-            }
-
-            button("Сохранить как") {
-                hboxConstraints { margin = Insets(10.0) }
-                action {
-                    if(!controller.preSaveCheck()) return@action
-                    val list = chooseFile("Выберите файл", mode = FileChooserMode.Save, filters = arrayOf(), owner = primaryStage)
-                    val path = list[0].absolutePath
-                    runAsyncWithProgress {
-                        controller.save(path)
+                button{
+                    graphic = resources.imageview("/PNG/Help Blue Button.png").apply{
+                        fitHeight = 24.0
+                        fitWidth = 24.0
+                    }
+                    action{
+                        information("BaseEdit2 (SKL редактор)",
+                            "Num+ - добавить выдел\nNum- - удалить выдел\n\n\nРазработчик - Порохин А.А.\n\nРОСЛЕСИНФОРГ 2020",
+                            owner = primaryStage)
                     }
                 }
             }
+
+
 
         }
         tabpane {
@@ -145,6 +245,19 @@ class ParentView : View(){
                 vgrow = Priority.ALWAYS
                 isClosable = false
                 tableView = tableview(controller.getData()) {
+
+                    fun <T> columnOnEdit(editEvent: TableColumn.CellEditEvent<Area, T>, idx: Int, condition: () -> Boolean){
+                        if(condition()){
+                            error("Невалидное значение")
+                            editModel.rollbackSelected()
+                        }
+                        val property = editEvent.tableColumn.getCellObservableValue(editEvent.rowValue) as Property<T?>
+                        property.value = editEvent.newValue
+                        selectionModel.focus(selectedRow)
+                        selectionModel.select(selectedRow, tableView!!.columns[idx])
+
+                    }
+
                     style(true) {
                         borderColor += box(Color.GRAY)
                     }
@@ -152,49 +265,28 @@ class ParentView : View(){
                     readonlyColumn("Кв", Area::numberKv)
                      column("Выд", Area::number).apply {
                          makeEditable()
-                         setOnEditCommit {
-                             val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<Int?>
-                             property.value = it.newValue
-                             selectionModel.focus(selectedRow)
-                             selectionModel.select(selectedRow, tableView!!.columns[1])
+
+                         setOnEditCommit { columnOnEdit(it, 1){ it.newValue > 999 || it.newValue < 0}
+
                              //tableView.edit(2, ) //todo
                          }
-                         setOnEditCancel { println("cancel") }
+                         setOnEditCancel { columnOnEdit(it, 1){it.newValue > 999 || it.newValue < 0} }
                      }
 
-                    /*.setOnEditCommit {
 
-                         if (it.newValue > 999 || it.newValue < 0) {
-                             error("Невалидное значение")
-                             //editModel.rollbackSelected()
-                         }
-                         //editModel.commit()
-                         //tableView!!.selectionModel.select(selectedRow, tableView!!.columns[3])
+                    column("Площадь", Area::area).apply {
+                        makeEditable()
+                        setOnEditCommit { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
+                        setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
 
-                     }*/
-                    column("Площадь", Area::area).makeEditable().setOnEditCommit {
-
-                        if(it.newValue > 9999 || it.newValue < 0){
-                            error("Невалидное значение")
-                            editModel.rollbackSelected()
-                        }
-                        val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<Double?>
-                        property.value = it.newValue
-                        selectionModel.focus(selectedRow)
-                        selectionModel.select(selectedRow, tableView!!.columns[2])
                     }
                     column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
                     readonlyColumn("К. земель", Area::categoryArea)
                     column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
-                    column("lesb", Area::lesb).makeEditable().setOnEditCommit {
-                        if(it.newValue.length > 4){
-                            error("Невалидное значение")
-                            editModel.rollbackSelected()
-                        }
-                        val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<String?>
-                        property.value = it.newValue
-                        selectionModel.focus(selectedRow)
-                        selectionModel.select(selectedRow, tableView!!.columns[6])
+                    column("lesb", Area::lesb).apply {
+                        makeEditable()
+                        setOnEditCommit { columnOnEdit(it, 6){it.newValue.length > 4} }
+                        setOnEditCancel { columnOnEdit(it, 6){it.newValue.length > 4} }
                     }
                     selectionModel.selectedItemProperty().onChange {
                         selected = this.selectedItem
@@ -205,24 +297,10 @@ class ParentView : View(){
 
 
                     enableCellEditing() //enables easier cell navigation/editing
-                    //enableDirtyTracking() //flags cells that are dirty
+                    enableDirtyTracking() //flags cells that are dirty
 
                     tableViewEditModel = editModel
 
-
-
-
-
-                   /* areaColumn.setOnEditCommit {
-                        try{
-                            it.newValue
-                        }
-                    }*/
-
-
-                    /*areaColumn.setOnEditCommit {
-                        if (it.newValue < 0) alert(Alert.AlertType.ERROR, "Error", "Отрицательная площадь")
-                    }*/
 
                 }
             }
@@ -319,6 +397,9 @@ class ParentView : View(){
         }
 
     }
+
+
+
 
 
 

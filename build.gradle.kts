@@ -9,6 +9,11 @@ version = "1.0-SNAPSHOT"
 repositories {
     mavenCentral()
 }
+java{
+    sourceCompatibility = org.gradle.api.JavaVersion.VERSION_1_8
+    targetCompatibility = org.gradle.api.JavaVersion.VERSION_1_8
+}
+
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
