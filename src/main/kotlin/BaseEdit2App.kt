@@ -141,7 +141,8 @@ class ParentView : View(){
                          setOnEditCommit {
                              val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<Int?>
                              property.value = it.newValue
-                             println("edit")
+                             selectionModel.focus(selectedRow)
+                             selectionModel.select(selectedRow, tableView!!.columns[1])
                              //tableView.edit(2, ) //todo
                          }
                          setOnEditCancel { println("cancel") }
@@ -165,8 +166,10 @@ class ParentView : View(){
                         }
                         val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<Double?>
                         property.value = it.newValue
+                        selectionModel.focus(selectedRow)
+                        selectionModel.select(selectedRow, tableView!!.columns[2])
                     }
-                    colum = column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
+                    column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
                     readonlyColumn("К. земель", Area::categoryArea)
                     column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
                     column("lesb", Area::lesb).makeEditable().setOnEditCommit {
@@ -176,6 +179,8 @@ class ParentView : View(){
                         }
                         val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<String?>
                         property.value = it.newValue
+                        selectionModel.focus(selectedRow)
+                        selectionModel.select(selectedRow, tableView!!.columns[6])
                     }
                     selectionModel.selectedItemProperty().onChange {
                         selected = this.selectedItem
@@ -189,6 +194,7 @@ class ParentView : View(){
                     //enableDirtyTracking() //flags cells that are dirty
 
                     tableViewEditModel = editModel
+
 
 
 
