@@ -1,6 +1,7 @@
 import javafx.animation.FadeTransition
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.Property
+import javafx.event.EventType
 import javafx.geometry.Insets
 import javafx.scene.control.*
 import javafx.scene.image.ImageView
@@ -11,7 +12,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
-
+import tornadofx.Stylesheet.Companion.progressBar
 
 
 fun main() {
@@ -34,6 +35,10 @@ class ParentView : View(){
     private var colum: TableColumn<Area, String?>? = null
     private var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
     private var status = Label()
+    private var progress = ProgressBar().apply {
+        vgrow = Priority.ALWAYS
+        minWidth = Double.MAX_VALUE
+    }
     init {
         primaryStage.setOnCloseRequest {
             if (controller.tableData.isEmpty()) return@setOnCloseRequest
@@ -42,69 +47,150 @@ class ParentView : View(){
                 controller.save(null)
             }
         }
+
+        primaryStage.setOnShown {
+            primaryStage.scene.setOnKeyPressed {
+
+                if (it.code == KeyCode.DOWN || it.code == KeyCode.UP || it.code == KeyCode.LEFT || it.code == KeyCode.RIGHT) {
+                    println(tableView!!.columns[6].onEditStartProperty())
+
+                    tableViewEditModel.items.filter {it2 -> it2.value.isDirty }
+                        .forEach { it1 ->
+                            println("Committing ${it1.key}")
+                            it1.value.commit()
+
+
+                    }
+                    tableView!!.selectionModel!!.focus(selectedRow + 1)
+                    tableView!!.selectionModel!!.select(selectedRow + 1, tableView!!.selectedColumn)
+
+
+                }
+
+            }
+        }
+
     }
 
 
     override val root = vbox {
+        try {
+            menubar {
+                menu("Файл"){
+                    item("Открыть"){
+                        action {
+                            val files = chooseFile(
+                                "Выберите файл",
+                                owner = primaryStage,
+                                mode = FileChooserMode.Single,
+                                filters = arrayOf()
+                            )
+                            if (files.isEmpty()) return@action
+                            controller.tableData.clear()
+                            //todo filters
 
-        hbox {
 
-            buttonbar {
-                hboxConstraints {
-                    padding = Insets(1.0)
-                    minHeight = 24.0
-                    prefHeight = 24.0
-                    margin = Insets(5.0)
-
-                }
-
-                val buttonFontSize = Dimension(7.0, Dimension.LinearUnits.pt)
-
-
-
-
-                button ("Открыть"){
-
-                    style{
-                        fontSize = buttonFontSize
+                            runAsyncWithProgress(progress = progress) {
+                                controller.initData(files[0])
+                                println("end init")
+                            } ui {
+                                println("visible false")
+                            }
+                        }
                     }
-
-                    onHover {
-                        println(this.width)
-                        println(this.prefWidth)
-                        println(this.maxWidth)
+                    item("Сохранить"){
+                        action {
+                            if (!controller.preSaveCheck()) return@action
+                            runAsyncWithProgress {
+                                controller.save(null)
+                            }
+                        }
                     }
-
-                    graphic = resources.imageview("/PNG/New Document.png").apply {
-                        fitHeight = 24.0
-                        fitWidth = 24.0
-                    }
-                    action {
-                        val files = chooseFile("Выберите файл", owner = primaryStage, mode = FileChooserMode.Single, filters = arrayOf())
-                        if (files.isEmpty()) return@action
-                        controller.tableData.clear()
-                        //todo filters
-
-
-                        runAsyncWithProgress/*(progress = progressBar)*/ {
-                            controller.initData(files[0])
-                            println("end init")
-                        }ui{
-                            println("visible false")
+                    item("Сохранить как .."){
+                        action {
+                            if (!controller.preSaveCheck()) return@action
+                            val list = chooseFile(
+                                "Выберите файл",
+                                mode = FileChooserMode.Save,
+                                filters = arrayOf(),
+                                owner = primaryStage
+                            )
+                            val path = list[0].absolutePath
+                            runAsyncWithProgress {
+                                controller.save(path)
+                            }
                         }
 
                     }
-                    //hboxConstraints { margin = Insets(10.0) }
-
                 }
+            }
 
+            hbox {
 
-                button("Добавить"){
-                    style{
-                        fontSize = buttonFontSize
+                buttonbar {
+                    hboxConstraints {
+                        padding = Insets(1.0)
+                        minHeight = 24.0
+                        prefHeight = 24.0
+                        margin = Insets(5.0)
+
                     }
 
-                    /*style{
+                    val buttonFontSize = Dimension(7.0, Dimension.LinearUnits.pt)
+
+
+
+
+                    /*button("Открыть") {
+
+                        style {
+                            fontSize = buttonFontSize
+                        }
+
+                        onHover {
+                            println(this.width)
+                            println(this.prefWidth)
+                            println(this.maxWidth)
+                        }
+
+
+                        //println(resources["/PNG/New Document.png"])
+
+                        *//*graphic = resources.imageview("/PNG/Add.png").apply {
+                            fitHeight = 24.0
+                            fitWidth = 24.0
+                        }*//*
+                        action {
+                            val files = chooseFile(
+                                "Выберите файл",
+                                owner = primaryStage,
+                                mode = FileChooserMode.Single,
+                                filters = arrayOf()
+                            )
+                            if (files.isEmpty()) return@action
+                            controller.tableData.clear()
+                            //todo filters
+
+
+                            runAsyncWithProgress*//*(progress = progressBar)*//* {
+                                controller.initData(files[0])
+                                println("end init")
+                            } ui {
+                                println("visible false")
+                            }
+
+                        }
+                        //hboxConstraints { margin = Insets(10.0) }
+
+                    }*/
+
+
+                    button("Добавить") {
+                        style {
+                            fontSize = buttonFontSize
+                        }
+
+                        /*style{
                         maxHeight = Dimension(10.0, Dimension.LinearUnits.px)
                         maxWidth = Dimension(10.0, Dimension.LinearUnits.px)
                         backgroundRadius = multi(box(Dimension(10.0, Dimension.LinearUnits.px)))
@@ -112,131 +198,142 @@ class ParentView : View(){
 
                     }*/
 
-                    /*onHover {
+                        /*onHover {
                         style{
                             backgroundColor += c("#000000")
                         }
                     }*/
 
-                    //maxWidth = 10.0
-                    //prefWidth = 10.0
+                        //maxWidth = 10.0
+                        //prefWidth = 10.0
 
-                    //prefHeight = 100.0
-
-
+                        //prefHeight = 100.0
 
 
-
-
-                    val imageView = resources.imageview("/PNG/Add Green Button.png")
-                    imageView.fitHeight = 24.0
-                    imageView.fitWidth = 24.0
-                    graphic = imageView
-                    /*graphic = FontAwesomeIconView(PLUS_CIRCLE).apply {
+                        /*val imageView = resources.imageview("/Add Green Button.png")
+                        imageView.fitHeight = 24.0
+                        imageView.fitWidth = 24.0
+                        graphic = imageView*/
+                        /*graphic = FontAwesomeIconView(PLUS_CIRCLE).apply {
                         style {
                             fill = c("#818181")
                         }
                         glyphSize = 18
                     }
 */
-                    //addClass("icon-only")
+                        //addClass("icon-only")
 
 
-                    /*hboxConstraints {
+                        /*hboxConstraints {
                         margin = Insets(10.0)
                         prefWidth = 32.0
 
                     }*/
-                    action {
-                        if(selected == null) {
-                            println("selected is null")
-                            return@action
-                        }
-                        var item = selected!!
-                        item = Area(0, item.numberKv, 0.0, item.categoryArea, "-", item.ozu, item.lesb, item.rawData)
-
-                        controller.tableData.add(selectedRow, item)
-
-                        tableView!!.selectionModel!!.select(selectedRow,  tableView!!.columns[1])
-
-                    }
-
-                    shortcut(KeyCodeCombination(KeyCode.ADD))
-
-                }
-                button("Удалить"){
-                    style{
-                        fontSize = buttonFontSize
-                    }
-                    //hboxConstraints { margin = Insets(10.0) }
-                    graphic = resources.imageview("/PNG/Minus Green Button.png").apply {
-                        fitHeight = 24.0
-                        fitWidth = 24.0
-                    }
-                    action {
-                        alert(Alert.AlertType.CONFIRMATION, "Удалить?", owner = primaryStage, actionFn = {buttonType ->
-                            if (buttonType == ButtonType.OK) {
-                                controller.tableData.removeAt(selectedRow)
-                                tableView!!.selectionModel.select(selectedRow + 1, selectedCol)
-
+                        action {
+                            if (selected == null) {
+                                println("selected is null")
+                                return@action
                             }
-                        } )
+                            var item = selected!!
+                            item =
+                                Area(0, item.numberKv, 0.0, item.categoryArea, "-", item.ozu, item.lesb, item.rawData)
+
+                            controller.tableData.add(selectedRow, item)
+
+                            tableView!!.selectionModel!!.select(selectedRow, tableView!!.columns[1])
+
+                        }
+
+                        shortcut(KeyCodeCombination(KeyCode.ADD))
 
                     }
-                    shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
-                }
-                button("Сохранить") {
-                    style{
-                        fontSize = buttonFontSize
+                    button("Удалить") {
+                        style {
+                            fontSize = buttonFontSize
+                        }
+                        //hboxConstraints { margin = Insets(10.0) }
+                        /*graphic = resources.imageview("/Minus Green Button.png").apply {
+                            fitHeight = 24.0
+                            fitWidth = 24.0
+                        }*/
+                        action {
+                            alert(
+                                Alert.AlertType.CONFIRMATION,
+                                "Удалить?",
+                                owner = primaryStage,
+                                actionFn = { buttonType ->
+                                    if (buttonType == ButtonType.OK) {
+                                        controller.tableData.removeAt(selectedRow)
+                                        tableView!!.selectionModel.select(selectedRow + 1, selectedCol)
+
+                                    }
+                                })
+
+                        }
+                        shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
                     }
-                    graphic = resources.imageview("/PNG/Export To Document.png").apply {
-                        fitHeight = 24.0
-                        fitWidth = 24.0
+                    button("Сохранить") {
+                        style {
+                            fontSize = buttonFontSize
+                        }
+                        /*graphic = resources.imageview("/Export To Document.png").apply {
+                            fitHeight = 24.0
+                            fitWidth = 24.0
+                        }*/
+                        //hboxConstraints { margin = Insets(10.0) }
+                        action {
+                            if (!controller.preSaveCheck()) return@action
+                            runAsyncWithProgress {
+                                controller.save(null)
+                            }
+                        }
+
                     }
-                    //hboxConstraints { margin = Insets(10.0) }
-                    action {
-                        if(!controller.preSaveCheck()) return@action
-                        runAsyncWithProgress {
-                            controller.save(null)
+
+                    button("Сохранить как..") {
+                        //todo refactoring buttons
+                        style {
+                            fontSize = buttonFontSize
+                        }
+                        /*graphic = resources.imageview("/Export To Movie Document.png").apply {
+                            fitHeight = 24.0
+                            fitWidth = 24.0
+                        }*/
+                        //hboxConstraints { margin = Insets(10.0) }
+                        action {
+                            if (!controller.preSaveCheck()) return@action
+                            val list = chooseFile(
+                                "Выберите файл",
+                                mode = FileChooserMode.Save,
+                                filters = arrayOf(),
+                                owner = primaryStage
+                            )
+                            val path = list[0].absolutePath
+                            runAsyncWithProgress {
+                                controller.save(path)
+                            }
                         }
                     }
 
-                }
-
-                button("Сохранить как..") { //todo refactoring buttons
-                    style{
-                        fontSize = buttonFontSize
-                    }
-                    graphic = resources.imageview("/PNG/Export To Movie Document.png").apply{
-                        fitHeight = 24.0
-                        fitWidth = 24.0
-                    }
-                    //hboxConstraints { margin = Insets(10.0) }
-                    action {
-                        if(!controller.preSaveCheck()) return@action
-                        val list = chooseFile("Выберите файл", mode = FileChooserMode.Save, filters = arrayOf(), owner = primaryStage)
-                        val path = list[0].absolutePath
-                        runAsyncWithProgress {
-                            controller.save(path)
+                    button {
+                        /*graphic = resources.imageview("/Help Blue Button.png").apply {
+                            fitHeight = 24.0
+                            fitWidth = 24.0
+                        }*/
+                        action {
+                            information(
+                                "BaseEdit2 (SKL редактор)",
+                                "Num+ - добавить выдел\nNum- - удалить выдел\n\n\nРазработчик - Порохин А.А.\n\nРОСЛЕСИНФОРГ 2020",
+                                owner = primaryStage
+                            )
                         }
                     }
                 }
 
-                button{
-                    graphic = resources.imageview("/PNG/Help Blue Button.png").apply{
-                        fitHeight = 24.0
-                        fitWidth = 24.0
-                    }
-                    action{
-                        information("BaseEdit2 (SKL редактор)",
-                            "Num+ - добавить выдел\nNum- - удалить выдел\n\n\nРазработчик - Порохин А.А.\n\nРОСЛЕСИНФОРГ 2020",
-                            owner = primaryStage)
-                    }
-                }
+
             }
-
-
-
+        }catch (e: Exception){
+            e.printStackTrace()
         }
         tabpane {
             vgrow = Priority.ALWAYS
@@ -270,14 +367,14 @@ class ParentView : View(){
 
                              //tableView.edit(2, ) //todo
                          }
-                         setOnEditCancel { columnOnEdit(it, 1){it.newValue > 999 || it.newValue < 0} }
+                         //setOnEditCancel { columnOnEdit(it, 1){it.newValue > 999 || it.newValue < 0} }
                      }
 
 
                     column("Площадь", Area::area).apply {
                         makeEditable()
                         setOnEditCommit { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
-                        setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
+                        //setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
 
                     }
                     column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
@@ -286,9 +383,10 @@ class ParentView : View(){
                     column("lesb", Area::lesb).apply {
                         makeEditable()
                         setOnEditCommit { columnOnEdit(it, 6){it.newValue.length > 4} }
-                        setOnEditCancel { columnOnEdit(it, 6){it.newValue.length > 4} }
+                       // setOnEditCancel { columnOnEdit(it, 6){it.newValue.length > 4} }
                     }
                     selectionModel.selectedItemProperty().onChange {
+
                         selected = this.selectedItem
                         selectedRow = this.selectedCell?.row ?: selectedRow
                         selectedCol = this.selectedColumn
@@ -296,10 +394,15 @@ class ParentView : View(){
 
 
 
+
+
+
                     enableCellEditing() //enables easier cell navigation/editing
-                    enableDirtyTracking() //flags cells that are dirty
+                        //enableDirtyTracking() //flags cells that are dirty
 
                     tableViewEditModel = editModel
+
+
 
 
                 }
@@ -395,6 +498,9 @@ class ParentView : View(){
                 fade.playFromStart()
             }
         }
+        //progress = progressbar(0.0) {
+
+
 
     }
 
