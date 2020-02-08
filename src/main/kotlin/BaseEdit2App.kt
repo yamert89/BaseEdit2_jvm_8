@@ -3,6 +3,7 @@ import javafx.beans.property.IntegerProperty
 import javafx.beans.property.Property
 import javafx.event.EventType
 import javafx.geometry.Insets
+import javafx.scene.Parent
 import javafx.scene.control.*
 import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode
@@ -31,21 +32,25 @@ class ParentView : View(){
     private var selectedCol: TableColumn<Area, *>? = null
     private var tableView: TableView<Area>? = null
     private val model: AreaModel by inject()
+    //private val appPreferences: AppPreferences
     private val dataTypes = DataTypes()
     private var colum: TableColumn<Area, String?>? = null
     private var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
     private var status = Label()
+
     private var progress = ProgressBar().apply {
         vgrow = Priority.ALWAYS
-        minWidth = Double.MAX_VALUE
+            //minWidth = Double.MAX_VALUE
     }
     init {
         primaryStage.setOnCloseRequest {
+            AppPreferences.savePreferences()
             if (controller.tableData.isEmpty()) return@setOnCloseRequest
-            confirm("Подтверждение", "Сохранить?", cancelButton = ButtonType.NO){
+            confirm("Подтверждение", "Сохранить?", confirmButton = ButtonType.OK, cancelButton = ButtonType.NO){
                 if (!controller.preSaveCheck()) return@setOnCloseRequest
                 controller.save(null)
             }
+
         }
 
         primaryStage.setOnShown {
@@ -76,6 +81,7 @@ class ParentView : View(){
     override val root = vbox {
         try {
             menubar {
+                padding = Insets(0.0)
                 menu("Файл"){
                     item("Открыть"){
                         action {
@@ -121,6 +127,28 @@ class ParentView : View(){
                             }
                         }
 
+                    }
+                }
+                menu("?"){
+                    item("Горячие клавиши"){
+                        action {
+                            information("Горячие клавиши", "Num+ - добавить выдел\n" +
+                                    "Num- - удалить выдел")
+                        }
+                    }
+                    item("Настройки"){
+                        action {
+                            find(Preferences::class).openModal()
+                        }
+                    }
+                    item("О программе"){
+                        action {
+                            information(
+                                "BaseEdit2 (SKL редактор)",
+                                "Разработчик - Порохин А.А.\n\nРОСЛЕСИНФОРГ 2020",
+                                owner = primaryStage
+                            )
+                        }
                     }
                 }
             }
@@ -272,62 +300,9 @@ class ParentView : View(){
                         }
                         shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
                     }
-                    button("Сохранить") {
-                        style {
-                            fontSize = buttonFontSize
-                        }
-                        /*graphic = resources.imageview("/Export To Document.png").apply {
-                            fitHeight = 24.0
-                            fitWidth = 24.0
-                        }*/
-                        //hboxConstraints { margin = Insets(10.0) }
-                        action {
-                            if (!controller.preSaveCheck()) return@action
-                            runAsyncWithProgress {
-                                controller.save(null)
-                            }
-                        }
 
-                    }
 
-                    button("Сохранить как..") {
-                        //todo refactoring buttons
-                        style {
-                            fontSize = buttonFontSize
-                        }
-                        /*graphic = resources.imageview("/Export To Movie Document.png").apply {
-                            fitHeight = 24.0
-                            fitWidth = 24.0
-                        }*/
-                        //hboxConstraints { margin = Insets(10.0) }
-                        action {
-                            if (!controller.preSaveCheck()) return@action
-                            val list = chooseFile(
-                                "Выберите файл",
-                                mode = FileChooserMode.Save,
-                                filters = arrayOf(),
-                                owner = primaryStage
-                            )
-                            val path = list[0].absolutePath
-                            runAsyncWithProgress {
-                                controller.save(path)
-                            }
-                        }
-                    }
 
-                    button {
-                        /*graphic = resources.imageview("/Help Blue Button.png").apply {
-                            fitHeight = 24.0
-                            fitWidth = 24.0
-                        }*/
-                        action {
-                            information(
-                                "BaseEdit2 (SKL редактор)",
-                                "Num+ - добавить выдел\nNum- - удалить выдел\n\n\nРазработчик - Порохин А.А.\n\nРОСЛЕСИНФОРГ 2020",
-                                owner = primaryStage
-                            )
-                        }
-                    }
                 }
 
 
@@ -349,7 +324,11 @@ class ParentView : View(){
                             editModel.rollbackSelected()
                         }
                         val property = editEvent.tableColumn.getCellObservableValue(editEvent.rowValue) as Property<T?>
-                        property.value = editEvent.newValue
+                        if (idx == 6){
+                            var res = editEvent.newValue as String
+                            if((editEvent.newValue as String).length < 4) while (res.length < 4) res = "0$res"
+                            property.value = res as T
+                        } else property.value = editEvent.newValue
                         selectionModel.focus(selectedRow)
                         selectionModel.select(selectedRow, tableView!!.columns[idx])
 
@@ -382,7 +361,9 @@ class ParentView : View(){
                     column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
                     column("lesb", Area::lesb).apply {
                         makeEditable()
-                        setOnEditCommit { columnOnEdit(it, 6){it.newValue.length > 4} }
+                        setOnEditCommit {
+                            columnOnEdit(it, 6){it.newValue.length > 4}
+                        }
                        // setOnEditCancel { columnOnEdit(it, 6){it.newValue.length > 4} }
                     }
                     selectionModel.selectedItemProperty().onChange {
@@ -510,6 +491,24 @@ class ParentView : View(){
 
 
 
+}
+
+class Preferences : Fragment("Настройки"){
+
+    override val root = pane {
+        val m10 = Insets(10.0)
+        padding = m10
+        vbox {
+            padding = Insets(20.0)
+            checkbox("Проверять на пропуски выделов при сохранении", AppPreferences.checkSkippedProperty ){
+                vboxConstraints { margin = m10 }
+            }
+            checkbox("Делать резервную копию при сохранении", AppPreferences.saveBackupsProperty){
+                vboxConstraints { margin = m10 }
+            }
+        }
+
+    }
 }
 
 class IntToStringConverter(private val dataMap: Map<Int, String>): IntegerStringConverter(){

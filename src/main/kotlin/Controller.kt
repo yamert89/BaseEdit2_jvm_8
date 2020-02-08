@@ -23,10 +23,9 @@ class GenController: Controller() {
     }
 
     fun save(path: String?){
-        /*var name = "$filePath.bak"
-        while (Files.exists(Paths.get(name))) name+="1"*/
+
         if (path == null){
-            File(filePath).renameTo(File("${filePath}_${LocalTime.now().format(DateTimeFormatter.ofPattern("HH_mm_ss"))}.bak"))
+            if (AppPreferences.saveBackups) File(filePath).renameTo(File("${filePath}_${LocalTime.now().format(DateTimeFormatter.ofPattern("HH_mm_ss"))}.bak"))
         }else filePath = path
         FileExecutor().saveFile(File(filePath), tableData)
     }

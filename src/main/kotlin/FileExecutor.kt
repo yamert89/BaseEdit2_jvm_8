@@ -8,7 +8,6 @@ class FileExecutor {
     private lateinit var raf: RandomAccessFile
     private var globalOffset = 0L
     private val byteList = ArrayList<Byte>()
-    private val charset = StandardCharsets.US_ASCII
     private var counter = 0L
     private val dataTypes = DataTypes() //todo replace
 
@@ -133,12 +132,7 @@ class FileExecutor {
     }
 
 
-    private fun <T> T.addZeroes(size: Int): ByteArray{
-        var value = if (this !is String) this.toString() else this
-        while (value.length < size) value = "0$value"
-        return value.toByteArray(charset)
 
-    }
 
 
 
