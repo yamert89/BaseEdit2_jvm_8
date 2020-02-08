@@ -5,9 +5,11 @@ import javafx.event.EventType
 import javafx.geometry.Insets
 import javafx.scene.Parent
 import javafx.scene.control.*
+import javafx.scene.control.cell.TextFieldTableCell
 import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Background
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
@@ -31,8 +33,8 @@ class ParentView : View(){
     private var selectedRow: Int = 0
     private var selectedCol: TableColumn<Area, *>? = null
     private var tableView: TableView<Area>? = null
+    private var editEvent: TableColumn.CellEditEvent<Area, String>? = null
     private val model: AreaModel by inject()
-    //private val appPreferences: AppPreferences
     private val dataTypes = DataTypes()
     private var colum: TableColumn<Area, String?>? = null
     private var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
@@ -40,7 +42,7 @@ class ParentView : View(){
 
     private var progress = ProgressBar().apply {
         vgrow = Priority.ALWAYS
-            //minWidth = Double.MAX_VALUE
+
     }
     init {
         primaryStage.setOnCloseRequest {
@@ -54,25 +56,31 @@ class ParentView : View(){
         }
 
         primaryStage.setOnShown {
-            primaryStage.scene.setOnKeyPressed {
+            /*primaryStage.scene.setOnKeyPressed {
 
                 if (it.code == KeyCode.DOWN || it.code == KeyCode.UP || it.code == KeyCode.LEFT || it.code == KeyCode.RIGHT) {
                     println(tableView!!.columns[6].onEditStartProperty())
 
-                    tableViewEditModel.items.filter {it2 -> it2.value.isDirty }
-                        .forEach { it1 ->
-                            println("Committing ${it1.key}")
-                            it1.value.commit()
+                    val tableView = tableView as TableView<Area>
+                    //println(tableView.editingCellProperty().value)
+                    //tableView.regainFocusAfterEdit()
+                    //selectedCol.setOnEditStart {  }
+
+                    //controller.tableData[selectedRow].lesb = "777"
 
 
-                    }
-                    tableView!!.selectionModel!!.focus(selectedRow + 1)
-                    tableView!!.selectionModel!!.select(selectedRow + 1, tableView!!.selectedColumn)
+
+                    val property = tableView.columns[6].getCellObservableValue(selectedRow) as Property<String>
+                    property.value = "&&&"
+                    tableViewEditModel.commit(controller.tableData[selectedRow])
+
+                    tableView.selectionModel.focus(selectedRow + 1)
+                    tableView.selectionModel.select(selectedRow + 1, tableView.selectedColumn)
 
 
                 }
 
-            }
+            }*/
         }
 
     }
@@ -144,8 +152,8 @@ class ParentView : View(){
                     item("О программе"){
                         action {
                             information(
-                                "BaseEdit2 (SKL редактор)",
-                                "Разработчик - Порохин А.А.\n\nРОСЛЕСИНФОРГ 2020",
+                                "BaseEdit2 (SKL редактор)  v. 1.0",
+                                "Разработчик - Порохин Александр\n\nРОСЛЕСИНФОРГ 2020",
                                 owner = primaryStage
                             )
                         }
@@ -317,6 +325,7 @@ class ParentView : View(){
                 vgrow = Priority.ALWAYS
                 isClosable = false
                 tableView = tableview(controller.getData()) {
+                    fixedCellSize = 22.0
 
                     fun <T> columnOnEdit(editEvent: TableColumn.CellEditEvent<Area, T>, idx: Int, condition: () -> Boolean){
                         if(condition()){
@@ -342,9 +351,27 @@ class ParentView : View(){
                      column("Выд", Area::number).apply {
                          makeEditable()
 
-                         setOnEditCommit { columnOnEdit(it, 1){ it.newValue > 999 || it.newValue < 0}
+                        /* setOnEditStart {
+                             println(it.newValue ?: "null")
+                             setOnKeyPressed {event ->
+                                 if (event.code == KeyCode.DOWN){
+                                     println("down")
+                                     val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<Int?>
+                                     tableViewEditModel.commit(controller.tableData[selectedRow])
+                                     property.value = it.newValue
+                                     tableView.selectionModel.focus(selectedRow + 1)
+                                     tableView.selectionModel.select(selectedRow + 1, tableView.selectedColumn)
+                                 }
+                             }
+                         }*/
 
-                             //tableView.edit(2, ) //todo
+                         setOnEditCommit {
+                             println(it.newValue ?: "null")
+                         }
+
+                         setOnEditCommit { columnOnEdit(it, 1){ it.newValue > 999 || it.newValue < 0}
+                             //selectionModel.select(selectedRow, tableView!!.columns[2])
+                             //tableView.edit(selectedRow, tableView.columns[2]) //todo
                          }
                          //setOnEditCancel { columnOnEdit(it, 1){it.newValue > 999 || it.newValue < 0} }
                      }
@@ -366,11 +393,14 @@ class ParentView : View(){
                         }
                        // setOnEditCancel { columnOnEdit(it, 6){it.newValue.length > 4} }
                     }
+
                     selectionModel.selectedItemProperty().onChange {
 
                         selected = this.selectedItem
                         selectedRow = this.selectedCell?.row ?: selectedRow
                         selectedCol = this.selectedColumn
+                        println("select")
+                        if (selectedCol == tableView!!.columns[3]) tableView!!.edit(selectedRow, selectedCol)
                     }
 
 
@@ -508,6 +538,12 @@ class Preferences : Fragment("Настройки"){
             }
         }
 
+    }
+}
+
+class TextFieldTableCellMod<T> : TableCell<Area, T>(){
+    override fun cancelEdit() {
+        super.cancelEdit()
     }
 }
 
