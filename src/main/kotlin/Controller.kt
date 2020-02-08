@@ -5,6 +5,7 @@ import tornadofx.alert
 import tornadofx.asObservable
 import tornadofx.confirm
 import java.io.File
+import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -36,7 +37,8 @@ class GenController: Controller() {
         print("init data done")
     }
 
-    fun executeUtil(param1: Pair<Any?, String>, param2: Pair<Any?, String>, resParam: Pair<Any, String>){
+    fun executeUtil(param1: Pair<Any?, String>, param2: Pair<Any?, String>, resParam: Pair<Any, String>): Int{
+
         val filteredData = tableData.filter {
             (if(param1.first != dataTypes.EMTPTY && param1.first != null) {
                 when(param1.first){
@@ -61,14 +63,27 @@ class GenController: Controller() {
 
         }
 
-        filteredData.forEach {
-            when(resParam.first){
-                dataTypes.CATEGORY_AREA -> it.categoryArea = resParam.second
-                dataTypes.CATEGORY_PROTECTION -> it.categoryProtection = resParam.second
-                dataTypes.OZU -> it.ozu = resParam.second
-                dataTypes.LESB -> it.lesb = resParam.second
+        val tempList = ArrayList(filteredData)
+        if(tempList.isEmpty()) return 0
+
+        try {
+            tempList.forEach {
+                when(resParam.first){
+                    dataTypes.CATEGORY_AREA -> it.categoryArea = resParam.second
+                    dataTypes.CATEGORY_PROTECTION -> it.categoryProtection = resParam.second
+                    dataTypes.OZU -> it.ozu = resParam.second
+                    dataTypes.LESB -> it.lesb = resParam.second
+                }
             }
+        }catch (e: Exception){
+
+            return -1
         }
+
+        tableData.clear()
+        tableData.addAll(tempList)
+        return 1
+
     }
 
     fun preSaveCheck(): Boolean{

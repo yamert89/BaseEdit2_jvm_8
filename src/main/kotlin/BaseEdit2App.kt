@@ -471,11 +471,17 @@ class ParentView : View(){
                                     return@action
                                 }
 
-                                controller.executeUtil(
+                                val res = controller.executeUtil(
                                     par1Key!!.value to par1Val!!.text,
                                     par2Key!!.value to par2Val!!.text,
                                     parRes!!.value to parResVal!!.text)
-                                status.text = "Операция выполнена" //todo ani
+
+                                when(res){
+                                    0 -> error("Отмена", "Искомые записи не найдены")
+                                    -1 -> error("Отмена", "Неправильное значение")
+                                    1 -> status.text = "Операция выполнена"
+                                }
+
 
                                     //tableViewEditModel.commit()
                             }
@@ -497,7 +503,7 @@ class ParentView : View(){
             fade.toValue = 1.0
             fade.isAutoReverse = true
             fade.cycleCount = 2
-            fade.duration = javafx.util.Duration(500.0)
+            fade.duration = javafx.util.Duration(1000.0)
             vboxConstraints {
                 margin = Insets(5.0)
                 minWidth = 500.0
