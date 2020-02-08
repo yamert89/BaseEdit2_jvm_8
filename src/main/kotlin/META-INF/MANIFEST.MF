@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Main-Class: BaseEdit2
-Class-Path: /src/main/
-

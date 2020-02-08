@@ -56,6 +56,7 @@ class ParentView : View(){
         }
 
         primaryStage.setOnShown {
+            primaryStage.icons.add(resources.image("Add.png"))
             /*primaryStage.scene.setOnKeyPressed {
 
                 if (it.code == KeyCode.DOWN || it.code == KeyCode.UP || it.code == KeyCode.LEFT || it.code == KeyCode.RIGHT) {
@@ -428,44 +429,66 @@ class ParentView : View(){
                 var parResVal: TextField? = null
 
                 isClosable = false
-                val margins = Insets(20.0)
+                val margins = Insets(10.0)
                 vbox {
-                    hbox{
-                        val filterParameters = dataTypes.filterParameters
-                        vbox {
-
-                            label("Параметр 1")
-                            par1Key = combobox(values = filterParameters) { }
-                            label("Параметр 2")
-                            par2Key = combobox(values = filterParameters) { }
-                            vboxConstraints { margin = margins }
-                        }
-                        vbox {
-                            label("Значение 1")
-                            par1Val = textfield {  }
-                            label("Значение 2")
-                            par2Val = textfield {  }
-                            vboxConstraints { margin = margins }
-                        }
-                        vbox {
-                            label("Применить к...")
-                            parRes = combobox(values = dataTypes.executeParameters) {  }
-                            vboxConstraints { margin = margins }
-                        }
-                        vbox {
-                            label("Значение")
-                            parResVal = textfield{}
-                            vboxConstraints { margin = margins }
-                        }
+                    padding = margins
+                    val filterParameters = dataTypes.filterParameters
+                    hbox {
                         vboxConstraints { margin = margins }
+                        label("Отобрать значения:")
                     }
+                    hbox {
+                        vboxConstraints { margin = margins }
+                        par1Key = combobox(values = filterParameters) { }
+                        label("="){
+                            hboxConstraints {
+                                marginLeftRight(10.0)
+                            }
+                        }
+                        par1Val = textfield { }
+
+                    }
+                    hbox {
+                        vboxConstraints { margin = margins }
+                        par2Key = combobox(values = filterParameters) { }
+                        label("="){
+                            hboxConstraints {
+                                marginLeftRight(10.0)
+                            }
+                        }
+                        par2Val = textfield {  }
+
+                    }
+                    hbox{
+                        vboxConstraints { margin = margins }
+                        label("И применить:"){hboxConstraints { marginRight = 10.0 }}
+                    }
+
+                    hbox {
+                        vboxConstraints { margin = margins }
+
+                        parRes = combobox(values = dataTypes.executeParameters) {  }
+                        label("="){
+                            hboxConstraints {
+                                marginLeftRight(10.0)
+                            }
+                        }
+                        parResVal = textfield{}
+
+
+                    }
+
+
+
+
                     vbox{
-                        label("Осторожно! Формат значений должен строго совпадать с табличным во избежание потери данных"){
+                        label("Формат значений должен совпадать с табличным "){
                             vboxConstraints { maxWidth = 400.0 }
 
                         }
                         button("Применить") {
                             action{
+                                if(controller.tableData.isEmpty()) error("Oтмена","Таблица пуста"){return@action}
                                 if(parRes!!.value == null || (par1Key!!.value == null && par2Key!!.value == null)){
                                     error("Значения не выбраны")
                                     return@action

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "BaseEdit2"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
     mavenCentral()
@@ -28,6 +28,7 @@ configure<JavaPluginConvention> {
 sourceSets{
 
 }
+project.configurations.implementation.isCanBeResolved = true
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
@@ -37,13 +38,15 @@ tasks {
     }
     jar{
         manifest {
-            attributes( "Main-Class: BaseEdit2AppKt")
+            attributes( "Main-Class" to "BaseEdit2AppKt")
         }
-        from(sourceSets.names)
-        //from(configurations.compile.fileCollection().map { if(it.isDirectory) it else zipTree(it) })
+        archiveFileName.set("BaseEdit2-${project.version}.jar")
+        val c = configurations.implementation.get().files.map{ if(it.isDirectory) it else zipTree(it)}
+        val d = project.dependencies
+        from(c)
+
+
         //from(configurations.compile.get().fileCollection().map{ if(it.isDirectory) it else zipTree(it)})
     }
-    register("Post"){
 
-    }
 }

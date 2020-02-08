@@ -38,6 +38,7 @@ class GenController: Controller() {
     }
 
     fun executeUtil(param1: Pair<Any?, String>, param2: Pair<Any?, String>, resParam: Pair<Any, String>): Int{
+        println("Записей было ${tableData.size}")
 
         val filteredData = tableData.filter {
             (if(param1.first != dataTypes.EMTPTY && param1.first != null) {
@@ -63,16 +64,20 @@ class GenController: Controller() {
 
         }
 
-        val tempList = ArrayList(filteredData)
+        println("Изменений ${filteredData}")
+
+        val tempList = HashMap<String, Area>()
+
+        filteredData.forEach { tempList["${it.numberKv}|${it.number}"] = it }
         if(tempList.isEmpty()) return 0
 
         try {
             tempList.forEach {
                 when(resParam.first){
-                    dataTypes.CATEGORY_AREA -> it.categoryArea = resParam.second
-                    dataTypes.CATEGORY_PROTECTION -> it.categoryProtection = resParam.second
-                    dataTypes.OZU -> it.ozu = resParam.second
-                    dataTypes.LESB -> it.lesb = resParam.second
+                    dataTypes.CATEGORY_AREA -> it.value.categoryArea = resParam.second
+                    dataTypes.CATEGORY_PROTECTION -> it.value.categoryProtection = resParam.second
+                    dataTypes.OZU -> it.value.ozu = resParam.second
+                    dataTypes.LESB -> it.value.lesb = resParam.second
                 }
             }
         }catch (e: Exception){
@@ -80,8 +85,15 @@ class GenController: Controller() {
             return -1
         }
 
-        tableData.clear()
-        tableData.addAll(tempList)
+        val indexedMap = HashMap<Int, Area>()
+
+        for (i in 0 until tableData.size){
+            val area = tableData[i]
+            val key = "${area.numberKv}|${area.number}"
+            if (tempList.containsKey(key)) indexedMap[i] = tempList[key]!!
+        }
+        indexedMap.forEach { tableData.set(it.key, it.value) }
+        println("Записей стало ${tableData.size}")
         return 1
 
     }
