@@ -15,7 +15,9 @@ import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
+import tornadofx.Stylesheet.Companion.disabled
 import tornadofx.Stylesheet.Companion.progressBar
+import java.net.URI
 
 
 fun main() {
@@ -39,6 +41,8 @@ class ParentView : View(){
     private var colum: TableColumn<Area, String?>? = null
     private var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
     private var status = Label()
+    private var addButton = Button()
+    private var delButton = addButton
 
     private var progress = ProgressBar().apply {
         vgrow = Priority.ALWAYS
@@ -56,27 +60,8 @@ class ParentView : View(){
         }
 
         primaryStage.setOnShown {
-            primaryStage.icons.add(resources.image("Add.png"))
+            primaryStage.icons.add(resources.image("Terminal.png"))
             /*primaryStage.scene.setOnKeyPressed {
-
-                if (it.code == KeyCode.DOWN || it.code == KeyCode.UP || it.code == KeyCode.LEFT || it.code == KeyCode.RIGHT) {
-                    println(tableView!!.columns[6].onEditStartProperty())
-
-                    val tableView = tableView as TableView<Area>
-                    //println(tableView.editingCellProperty().value)
-                    //tableView.regainFocusAfterEdit()
-                    //selectedCol.setOnEditStart {  }
-
-                    //controller.tableData[selectedRow].lesb = "777"
-
-
-
-                    val property = tableView.columns[6].getCellObservableValue(selectedRow) as Property<String>
-                    property.value = "&&&"
-                    tableViewEditModel.commit(controller.tableData[selectedRow])
-
-                    tableView.selectionModel.focus(selectedRow + 1)
-                    tableView.selectionModel.select(selectedRow + 1, tableView.selectedColumn)
 
 
                 }
@@ -109,7 +94,9 @@ class ParentView : View(){
                                 controller.initData(files[0])
                                 println("end init")
                             } ui {
-                                println("visible false")
+                                addButton.disableProperty().set(false)
+                                delButton.disableProperty().set(false)
+
                             }
                         }
                     }
@@ -162,110 +149,34 @@ class ParentView : View(){
                 }
             }
 
-            hbox {
 
-                buttonbar {
-                    hboxConstraints {
-                        padding = Insets(1.0)
-                        minHeight = 24.0
-                        prefHeight = 24.0
-                        margin = Insets(5.0)
 
-                    }
+                hbox {
+
+                    padding = Insets(3.0)
 
                     val buttonFontSize = Dimension(7.0, Dimension.LinearUnits.pt)
 
+                    addButton = button(/*"Добавить"*/) {
+                        hboxConstraints {
+                            marginLeftRight(10.0)
+                        }
 
-
-
-                    /*button("Открыть") {
 
                         style {
                             fontSize = buttonFontSize
-                        }
-
-                        onHover {
-                            println(this.width)
-                            println(this.prefWidth)
-                            println(this.maxWidth)
-                        }
-
-
-                        //println(resources["/PNG/New Document.png"])
-
-                        *//*graphic = resources.imageview("/PNG/Add.png").apply {
-                            fitHeight = 24.0
-                            fitWidth = 24.0
-                        }*//*
-                        action {
-                            val files = chooseFile(
-                                "Выберите файл",
-                                owner = primaryStage,
-                                mode = FileChooserMode.Single,
-                                filters = arrayOf()
-                            )
-                            if (files.isEmpty()) return@action
-                            controller.tableData.clear()
-                            //todo filters
-
-
-                            runAsyncWithProgress*//*(progress = progressBar)*//* {
-                                controller.initData(files[0])
-                                println("end init")
-                            } ui {
-                                println("visible false")
-                            }
+                            prefWidth = Dimension(25.0, Dimension.LinearUnits.px)
+                            padding = box(Dimension(1.0, Dimension.LinearUnits.px))
 
                         }
-                        //hboxConstraints { margin = Insets(10.0) }
 
-                    }*/
+                        disableProperty().set(true)
 
+                        val imageView = resources.imageview("/Add Green Button.png")
+                        imageView.fitHeight = 20.0
+                        imageView.fitWidth = 20.0
+                        graphic = imageView
 
-                    button("Добавить") {
-                        style {
-                            fontSize = buttonFontSize
-                        }
-
-                        /*style{
-                        maxHeight = Dimension(10.0, Dimension.LinearUnits.px)
-                        maxWidth = Dimension(10.0, Dimension.LinearUnits.px)
-                        backgroundRadius = multi(box(Dimension(10.0, Dimension.LinearUnits.px)))
-                        //background = Background.EMPTY
-
-                    }*/
-
-                        /*onHover {
-                        style{
-                            backgroundColor += c("#000000")
-                        }
-                    }*/
-
-                        //maxWidth = 10.0
-                        //prefWidth = 10.0
-
-                        //prefHeight = 100.0
-
-
-                        /*val imageView = resources.imageview("/Add Green Button.png")
-                        imageView.fitHeight = 24.0
-                        imageView.fitWidth = 24.0
-                        graphic = imageView*/
-                        /*graphic = FontAwesomeIconView(PLUS_CIRCLE).apply {
-                        style {
-                            fill = c("#818181")
-                        }
-                        glyphSize = 18
-                    }
-*/
-                        //addClass("icon-only")
-
-
-                        /*hboxConstraints {
-                        margin = Insets(10.0)
-                        prefWidth = 32.0
-
-                    }*/
                         action {
                             if (selected == null) {
                                 println("selected is null")
@@ -284,15 +195,18 @@ class ParentView : View(){
                         shortcut(KeyCodeCombination(KeyCode.ADD))
 
                     }
-                    button("Удалить") {
+                    delButton = button(/*"Удалить"*/) {
+                        disableProperty().set(true)
                         style {
                             fontSize = buttonFontSize
+                            prefWidth = Dimension(25.0, Dimension.LinearUnits.px)
+                            padding = box(Dimension(1.0, Dimension.LinearUnits.px))
+
                         }
-                        //hboxConstraints { margin = Insets(10.0) }
-                        /*graphic = resources.imageview("/Minus Green Button.png").apply {
-                            fitHeight = 24.0
-                            fitWidth = 24.0
-                        }*/
+                        graphic = resources.imageview("/Minus Green Button.png").apply {
+                            fitHeight = 20.0
+                            fitWidth = 20.0
+                        }
                         action {
                             alert(
                                 Alert.AlertType.CONFIRMATION,
@@ -315,7 +229,7 @@ class ParentView : View(){
                 }
 
 
-            }
+
         }catch (e: Exception){
             e.printStackTrace()
         }
@@ -531,9 +445,7 @@ class ParentView : View(){
                 margin = Insets(5.0)
                 minWidth = 500.0
             }
-            /*style{
-                backgroundColor += c(255, 123, 123, 1.0)
-            }*/
+
             textProperty().onChange {
                 fade.playFromStart()
             }
