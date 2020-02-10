@@ -7,13 +7,17 @@ import tornadofx.confirm
 import java.io.File
 import java.lang.Exception
 import java.lang.IllegalArgumentException
+import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.abs
 
 class GenController: Controller() {
     val tableData = emptyList<Area>().toMutableList().asObservable()
+    var sumAreasForKv :  Map<Int, Double>? = null
     private var filePath = ""
     private val dataTypes = DataTypes()
 
@@ -34,6 +38,7 @@ class GenController: Controller() {
     fun initData(file: File){
         tableData.addAll(FileExecutor().parseFile(file))
         filePath = file.absolutePath
+        if(AppPreferences.checkAreas) sumAreasForKv = calculateAreasForKv()
         print("init data done")
     }
 
@@ -100,6 +105,7 @@ class GenController: Controller() {
 
     fun preSaveCheck(): Boolean{
         //tableViewEditModel.commit()
+        val checkSkipped = AppPreferences.checkSkipped
         val dublicate = mutableListOf<Area>()
         val catProt = mutableListOf<Area>()
         val skipped = mutableListOf<Area>()
@@ -114,6 +120,7 @@ class GenController: Controller() {
         if (map.isNotEmpty()){
             map.forEach {
                 if (it.value.distinct().size != it.value.size) dublicate.add(tableData.first { el -> el.numberKv == it.key})
+                if (!checkSkipped) return@forEach
                 if(!skipped.contains(tableData.first { el -> el.numberKv == it.key})){
                     if(it.value.containsSkipped()) skipped.add(tableData.first { el -> el.numberKv == it.key})
                 }
@@ -132,7 +139,18 @@ class GenController: Controller() {
         if (dublicate.size > 0){
             message += "\nДубликаты в ${dublicate.joinToString { "кв: ${it.numberKv}"}}"
         }
-        if (skipped.isNotEmpty()){
+        if (sumAreasForKv != null && AppPreferences.checkAreas){
+            val resMap = HashMap<Int, Double>()
+            val check = calculateAreasForKv()
+            check.forEach{
+                val diff = it.value - sumAreasForKv!![it.key]!!
+                if(diff != 0.0) resMap[it.key] = abs(diff)
+            }
+            if (resMap.isNotEmpty()) message += "\nНе совпадают площади в " + resMap.entries.joinToString { "кв: ${it.key} на ${DecimalFormat("####.#").format(it.value)}" }
+
+
+        }
+        if (checkSkipped && skipped.isNotEmpty()){
             message += "\nПропущены выдела в кв ${skipped.joinToString { it.numberKv.toString() }}"
         }
 
@@ -159,8 +177,13 @@ class GenController: Controller() {
         return false
     }
 
-    fun checkFile(file: File): Boolean{
-        return false
+    fun calculateAreasForKv(): Map<Int, Double> {
+        val map = HashMap<Int, Double>()
+        tableData.forEach {
+            if (!map.containsKey(it.numberKv)) map[it.numberKv] = 0.0
+            map[it.numberKv] = map[it.numberKv]!! + it.area
+        }
+        return map
     }
 
 

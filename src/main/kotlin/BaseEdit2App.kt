@@ -85,6 +85,7 @@ class ParentView : View(){
                                 mode = FileChooserMode.Single,
                                 filters = arrayOf()
                             )
+
                             if (files.isEmpty()) return@action
                             controller.tableData.clear()
 
@@ -102,14 +103,15 @@ class ParentView : View(){
 
                                 addButton.disableProperty().set(false)
                                 delButton.disableProperty().set(false)
+                                if(!res) error("Ошибка", "Ошибка чтения файла")
 
                             }
-                            if(!res) error("Ошибка", "Ошибка чтения файла")
+
                         }
                     }
                     item("Сохранить"){
                         action {
-                            if (!controller.preSaveCheck()) return@action
+                            if (controller.tableData.isEmpty() || !controller.preSaveCheck()) return@action
                             runAsyncWithProgress {
                                 controller.save(null)
                             }
@@ -471,6 +473,7 @@ class ParentView : View(){
 }
 
 class Preferences : Fragment("Настройки"){
+    private val controller: GenController by inject()
 
     override val root = pane {
         val m10 = Insets(10.0)
@@ -483,24 +486,28 @@ class Preferences : Fragment("Настройки"){
             checkbox("Делать резервную копию при сохранении", AppPreferences.saveBackupsProperty){
                 vboxConstraints { margin = m10 }
             }
+            checkbox("Проверять изменение площадей", AppPreferences.checkAreasProperty) {
+                vboxConstraints { margin = m10 }
+                if (controller.tableData.isEmpty()) return@checkbox
+                AppPreferences.checkAreasProperty.onChange {
+                    if (it) alert(
+                    Alert.AlertType.CONFIRMATION,
+                    "Подтверждение",
+                    "Посчитать текущие площади как начальные?",
+                    ButtonType.YES,
+                    ButtonType.NO,
+                    owner = primaryStage,
+                    title = "?"
+                    ){ btnType ->
+                    if (btnType == ButtonType.YES){
+                        controller.sumAreasForKv = controller.calculateAreasForKv()
+                    } else if(btnType == ButtonType.NO) close()
+
+                } }
+            }
         }
 
     }
 }
 
-class TextFieldTableCellMod<T> : TableCell<Area, T>(){
-    override fun cancelEdit() {
-        super.cancelEdit()
-    }
-}
-
-class IntToStringConverter(private val dataMap: Map<Int, String>): IntegerStringConverter(){
-    override fun toString(value: Int?): String {
-        return dataMap[value]!!
-    }
-
-    override fun fromString(value: String?): Int {
-        return dataMap.filterValues { it == value }.iterator().next().key
-    }
-}
 

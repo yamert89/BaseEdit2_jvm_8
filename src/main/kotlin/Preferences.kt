@@ -20,15 +20,21 @@ object AppPreferences {
     val saveBackupsProperty = MyBooleanProperty(true)
     var saveBackups by saveBackupsProperty
 
+    val checkAreasProperty = MyBooleanProperty()
+    var checkAreas by checkAreasProperty
+
 
 
     init {
         println("pref loaded")
 
         if (file.exists()) {
-
-            properties.load(FileReader(file))
-            checkSkipped = properties.getProperty("chSkipped") == "1"
+            with(properties){
+                load(FileReader(file))
+                checkSkipped = getProperty("chSkipped") == "1"
+                saveBackups = getProperty("saveBack") == "1"
+                checkAreas = getProperty("checkAreas") == "1"
+            }
 
         } else file.createNewFile()
 
@@ -38,6 +44,8 @@ object AppPreferences {
 
     fun savePreferences(){
         properties["chSkipped"] = if (checkSkipped) "1" else "0"
+        properties["saveBack"] = if (saveBackups) "1" else "0"
+        properties["checkAreas"] = if (checkAreas) "1" else "0"
         properties.store(FileWriter(file), "")
     }
 }
