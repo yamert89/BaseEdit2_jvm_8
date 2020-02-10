@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "BaseEdit2"
-version = "1.0"
+version = "1.1"
 
 repositories {
     mavenCentral()
