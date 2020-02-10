@@ -74,7 +74,8 @@ class FileExecutor {
         val data2 = ByteArray(12)
         raf.read(data2)
         raf.seek(41 + globalOffset)
-        val data3 = raf.read()
+        val tempData3 = raf.read()
+        val data3 = if(tempData3 == 13) 48 else tempData3
         val s = readToken(42, 3)
         var data4 : ByteArray? = null
         if (s.startsWith("\n")) {
@@ -115,10 +116,10 @@ class FileExecutor {
                 write(area.addZeroes(5))
                 write(it.categoryArea.toByteArray(charset))
                 write(it.rawData.data3)
+                val ozMap = dataTypes.ozu.filterValues { v -> v == it.ozu }
+                val oz = if(ozMap.size > 0) ozMap.iterator().next().key else it.ozu
+                write(oz.toByteArray(charset))
                 if (it.rawData.data4 != null) {
-                    val ozMap = dataTypes.ozu.filterValues { v -> v == it.ozu }
-                    val oz = if(ozMap.size > 0) ozMap.iterator().next().key else it.ozu
-                    write(oz.toByteArray(charset))
                     write(it.rawData.data4)
                 }
                 write(10)

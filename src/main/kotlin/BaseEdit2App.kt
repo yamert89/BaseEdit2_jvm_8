@@ -314,7 +314,6 @@ class ParentView : View(){
                         selected = this.selectedItem
                         selectedRow = this.selectedCell?.row ?: selectedRow
                         selectedCol = this.selectedColumn
-                        println("select")
                         if (selectedCol == tableView!!.columns[3]) tableView!!.edit(selectedRow, selectedCol)
                     }
 
