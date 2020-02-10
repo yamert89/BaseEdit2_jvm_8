@@ -159,6 +159,10 @@ class GenController: Controller() {
         return false
     }
 
+    fun checkFile(file: File): Boolean{
+        return false
+    }
+
 
 }
 

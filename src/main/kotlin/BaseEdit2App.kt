@@ -87,17 +87,24 @@ class ParentView : View(){
                             )
                             if (files.isEmpty()) return@action
                             controller.tableData.clear()
-                            //todo filters
 
 
+                            var res = false
                             runAsyncWithProgress(progress = progress) {
-                                controller.initData(files[0])
+                                try {
+                                    controller.initData(files[0])
+                                    res = true
+                                }catch (e: Exception){
+                                    return@runAsyncWithProgress
+                                }
                                 println("end init")
                             } ui {
+
                                 addButton.disableProperty().set(false)
                                 delButton.disableProperty().set(false)
 
                             }
+                            if(!res) error("Ошибка", "Ошибка чтения файла")
                         }
                     }
                     item("Сохранить"){
