@@ -7,13 +7,9 @@ import tornadofx.confirm
 import java.io.File
 import java.lang.Exception
 import java.lang.IllegalArgumentException
-import java.math.BigDecimal
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.locks.Condition
 import kotlin.math.abs
 
 class GenController: Controller() {
@@ -124,7 +120,7 @@ class GenController: Controller() {
     fun preSaveCheck(): Boolean{
         //tableViewEditModel.commit()
         val checkSkipped = AppPreferences.checkSkipped
-        val dublicate = mutableListOf<Area>()
+        val dublicate = HashMap<Area, Int>()
         val catProt = mutableListOf<Area>()
         val skipped = HashMap<Area, Int>()
         val zeroNumber = mutableListOf<Area>()
@@ -137,7 +133,13 @@ class GenController: Controller() {
         }
         if (map.isNotEmpty()){
             map.forEach {
-                if (it.value.distinct().size != it.value.size) dublicate.add(tableData.first { el -> el.numberKv == it.key})
+                val distinctly= it.value.distinct().sorted()
+                if (distinctly.size != it.value.size) {
+                    val full = it.value.sorted()
+                    for (i in 0 until distinctly.size){
+                        if (full[i] != distinctly[i]) dublicate[tableData.first { el -> el.numberKv == it.key}] = full[i]
+                    }
+                }
                 if (!checkSkipped) return@forEach
                 if(!skipped.contains(tableData.first { el -> el.numberKv == it.key})){
                     val skippedNumber = it.value.containsSkipped()
@@ -156,7 +158,7 @@ class GenController: Controller() {
             message += "\nНомер выдела не проставлен в кв ${zeroNumber.joinToString(", "){ it.numberKv.toString()}}"
         }
         if (dublicate.size > 0){
-            message += "\nДубликаты в ${dublicate.joinToString { "кв: ${it.numberKv}"}}"
+            message += "\nДубликаты в ${dublicate.entries.joinToString { "кв: ${it.key.numberKv} выд: ${it.value}"}}"
         }
         if (sumAreasForKv != null && AppPreferences.checkAreas){
             val resMap = HashMap<Int, Double>()

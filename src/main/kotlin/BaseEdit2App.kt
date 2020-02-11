@@ -61,7 +61,7 @@ class ParentView : View(){
         }
 
         primaryStage.setOnShown {
-            primaryStage.icons.add(resources.image("Terminal.png"))
+            primaryStage.icons.add(resources.image("Desktop.png"))
 
             /*primaryStage.scene.setOnKeyPressed {
 
@@ -168,11 +168,32 @@ class ParentView : View(){
 
                     val buttonFontSize = Dimension(7.0, Dimension.LinearUnits.pt)
 
+                    button{
+                        hboxConstraints { marginLeftRight(10.0) }
+                        style {
+                            fontSize = buttonFontSize
+                            prefWidth = Dimension(25.0, Dimension.LinearUnits.px)
+                            padding = box(Dimension(1.0, Dimension.LinearUnits.px))
+
+                        }
+                        graphic = resources.imageview("/Export To Document.png").apply {
+                            fitHeight = 20.0
+                            fitWidth = 20.0
+                        }
+                        action {
+                            if (controller.tableData.isEmpty() || !controller.preSaveCheck()) return@action
+                            runAsyncWithProgress {
+                                controller.save(null)
+                            }
+                        }
+                        tooltip("Сохранить"){style{fontSize = buttonFontSize + 2}}
+                    }
+
                     addButton = button(/*"Добавить"*/) {
                         hboxConstraints {
-                            marginLeftRight(10.0)
+                            marginLeftRight(6.0)
                         }
-
+                        tooltip("Добавить выдел"){style{fontSize = buttonFontSize + 2}}
 
                         style {
                             fontSize = buttonFontSize
@@ -232,6 +253,7 @@ class ParentView : View(){
                                 })
 
                         }
+                        tooltip("Удалить выдел"){style{fontSize = buttonFontSize + 2}}
                         shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
                     }
 
@@ -465,10 +487,6 @@ class ParentView : View(){
 
 
     }
-
-
-
-
 
 
 
