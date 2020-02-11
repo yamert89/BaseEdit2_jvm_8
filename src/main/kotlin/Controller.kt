@@ -108,7 +108,7 @@ class GenController: Controller() {
         val checkSkipped = AppPreferences.checkSkipped
         val dublicate = mutableListOf<Area>()
         val catProt = mutableListOf<Area>()
-        val skipped = mutableListOf<Area>()
+        val skipped = HashMap<Area, Int>()
         val zeroNumber = mutableListOf<Area>()
         val map = mutableMapOf<Int, MutableList<Int>>()
         tableData.forEach {
@@ -122,7 +122,8 @@ class GenController: Controller() {
                 if (it.value.distinct().size != it.value.size) dublicate.add(tableData.first { el -> el.numberKv == it.key})
                 if (!checkSkipped) return@forEach
                 if(!skipped.contains(tableData.first { el -> el.numberKv == it.key})){
-                    if(it.value.containsSkipped()) skipped.add(tableData.first { el -> el.numberKv == it.key})
+                    val skippedNumber = it.value.containsSkipped()
+                    if( skippedNumber != 0) skipped[tableData.first { el -> el.numberKv == it.key}] = skippedNumber
                 }
 
             }
@@ -151,7 +152,7 @@ class GenController: Controller() {
 
         }
         if (checkSkipped && skipped.isNotEmpty()){
-            message += "\nПропущены выдела в кв ${skipped.joinToString { it.numberKv.toString() }}"
+            message += "\nПропущены выдела в ${skipped.entries.joinToString { "кв ${it.key.numberKv} после выд ${it.value}" }}"
         }
 
         if (message.isNotBlank()){
@@ -164,17 +165,19 @@ class GenController: Controller() {
         return true
     }
 
-    private fun List<Int>.containsSkipped(): Boolean{
-
+    /*
+    * if duplicates not found returns 0
+    * else returns number of area*/
+    private fun List<Int>.containsSkipped(): Int{
         val sorted = this.sorted()
         var num = sorted.last()
         for(i in (sorted.size - 1) downTo 1){
-            if(num - sorted[i-1] != 1) {
-                return true
+            if(num - sorted[i-1] > 1) {
+                return sorted[i-1]
             }
             num = sorted[i-1]
         }
-        return false
+        return 0
     }
 
     fun calculateAreasForKv(): Map<Int, Double> {
