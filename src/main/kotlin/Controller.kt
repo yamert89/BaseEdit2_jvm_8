@@ -74,7 +74,7 @@ class GenController: Controller() {
 
         val tempList = HashMap<String, Area>()
 
-        filteredData.forEach { tempList["${it.numberKv}|${it.number}"] = it }
+        filteredData.forEach { tempList["${it.numberKv}|${it.number}|${it.categoryArea}"] = it }
         if(tempList.isEmpty()) return 0
 
         try {
@@ -112,7 +112,7 @@ class GenController: Controller() {
 
         for (i in 0 until tableData.size){
             val area = tableData[i]
-            val key = "${area.numberKv}|${area.number}"
+            val key = "${area.numberKv}|${area.number}|${area.categoryArea}"
             if (tempList.containsKey(key)) indexedMap[i] = tempList[key]!!
         }
         indexedMap.forEach { tableData.set(it.key, it.value) }
