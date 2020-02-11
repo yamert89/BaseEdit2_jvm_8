@@ -13,6 +13,7 @@ import java.nio.file.Paths
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.locks.Condition
 import kotlin.math.abs
 
 class GenController: Controller() {
@@ -79,10 +80,27 @@ class GenController: Controller() {
         try {
             tempList.forEach {
                 when(resParam.first){
-                    dataTypes.CATEGORY_AREA -> it.value.categoryArea = resParam.second
-                    dataTypes.CATEGORY_PROTECTION -> it.value.categoryProtection = resParam.second
-                    dataTypes.OZU -> it.value.ozu = resParam.second
-                    dataTypes.LESB -> it.value.lesb = resParam.second
+                    dataTypes.CATEGORY_AREA -> {
+                        val intView = resParam.second.toInt()
+                        if(resParam.second.length != 4 || (intView < 1101 || intView > 2556)) return -1
+                        it.value.categoryArea = resParam.second
+                    }
+                    dataTypes.CATEGORY_PROTECTION -> {
+                        val contKey = dataTypes.categoryProtection.containsKey(resParam.second)
+                        val contValue = dataTypes.categoryProtection.containsValue(resParam.second)
+                        if(!contKey && !contValue) return -1
+                        it.value.categoryProtection = if(contKey) dataTypes.categoryProtection[resParam.second] else resParam.second
+                    }
+                    dataTypes.OZU -> {
+                        val conKey = dataTypes.ozu.containsKey(resParam.second)
+                        val contValue = dataTypes.ozu.containsValue(resParam.second)
+                        if(!conKey && !contValue) return -1
+                        it.value.ozu = if (conKey) dataTypes.ozu[resParam.second] else resParam.second
+                    }
+                    dataTypes.LESB -> {
+                        if (resParam.second.length != 4) return -1
+                        it.value.lesb = resParam.second
+                    }
                 }
             }
         }catch (e: Exception){

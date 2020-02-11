@@ -49,6 +49,7 @@ class ParentView : View(){
 
     }
     init {
+        title = "BaseEdit2"
         primaryStage.setOnCloseRequest {
             AppPreferences.savePreferences()
             if (controller.tableData.isEmpty()) return@setOnCloseRequest
@@ -61,6 +62,7 @@ class ParentView : View(){
 
         primaryStage.setOnShown {
             primaryStage.icons.add(resources.image("Terminal.png"))
+
             /*primaryStage.scene.setOnKeyPressed {
 
 
