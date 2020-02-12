@@ -120,7 +120,7 @@ class GenController: Controller() {
     fun preSaveCheck(): Boolean{
         //tableViewEditModel.commit()
         val checkSkipped = AppPreferences.checkSkipped
-        val dublicate = HashMap<Area, Int>()
+        val dublicate = mutableListOf<Area>()
         val catProt = mutableListOf<Area>()
         val skipped = HashMap<Area, Int>()
         val zeroNumber = mutableListOf<Area>()
@@ -133,13 +133,16 @@ class GenController: Controller() {
         }
         if (map.isNotEmpty()){
             map.forEach {
+
                 val distinctly= it.value.distinct().sorted()
                 if (distinctly.size != it.value.size) {
                     val full = it.value.sorted()
                     for (i in 0 until distinctly.size){
-                        if (full[i] != distinctly[i]) dublicate[tableData.first { el -> el.numberKv == it.key}] = full[i]
+                        if (dublicate.any { el -> el.numberKv == it.key }) break
+                        if (full[i] != distinctly[i]) dublicate.add(tableData.first { el -> el.numberKv == it.key && el.number == full[i]})
                     }
                 }
+
                 if (!checkSkipped) return@forEach
                 if(!skipped.contains(tableData.first { el -> el.numberKv == it.key})){
                     val skippedNumber = it.value.containsSkipped()
@@ -158,7 +161,7 @@ class GenController: Controller() {
             message += "\nНомер выдела не проставлен в кв ${zeroNumber.joinToString(", "){ it.numberKv.toString()}}"
         }
         if (dublicate.size > 0){
-            message += "\nДубликаты в ${dublicate.entries.joinToString { "кв: ${it.key.numberKv} выд: ${it.value}"}}"
+            message += "\nДубликаты в ${dublicate.joinToString { "кв: ${it.numberKv} выд: ${it.number}"}}"
         }
         if (sumAreasForKv != null && AppPreferences.checkAreas){
             val resMap = HashMap<Int, Double>()
