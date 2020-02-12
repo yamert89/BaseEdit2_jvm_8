@@ -170,7 +170,7 @@ class ParentView : View(){
 
                     val buttonFontSize = Dimension(7.0, Dimension.LinearUnits.pt)
 
-                    button{
+                    saveButton = button{
                         disableProperty().set(true)
                         hboxConstraints { marginLeftRight(10.0) }
                         style {
