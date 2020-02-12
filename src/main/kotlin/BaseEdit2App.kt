@@ -13,10 +13,12 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Background
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
+import javafx.util.StringConverter
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
 import tornadofx.Stylesheet.Companion.disabled
 import tornadofx.Stylesheet.Companion.progressBar
+import java.lang.NumberFormatException
 import java.net.URI
 
 
@@ -196,7 +198,7 @@ class ParentView : View(){
                         hboxConstraints {
                             marginLeftRight(6.0)
                         }
-                        tooltip("Добавить выдел"){style{fontSize = buttonFontSize + 2}}
+                        tooltip("Добавить выдел (Num+)"){style{fontSize = buttonFontSize + 2}}
 
                         style {
                             fontSize = buttonFontSize
@@ -256,7 +258,7 @@ class ParentView : View(){
                                 })
 
                         }
-                        tooltip("Удалить выдел"){style{fontSize = buttonFontSize + 2}}
+                        tooltip("Удалить выдел (Num-)"){style{fontSize = buttonFontSize + 2}}
                         shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
                     }
 
@@ -282,6 +284,7 @@ class ParentView : View(){
                         if(condition()){
                             error("Невалидное значение")
                             editModel.rollbackSelected()
+                            return
                         }
                         val property = editEvent.tableColumn.getCellObservableValue(editEvent.rowValue) as Property<T?>
                         if (idx == 6){
@@ -329,7 +332,20 @@ class ParentView : View(){
 
 
                     column("Площадь", Area::area).apply {
-                        makeEditable()
+                        makeEditable(object: StringConverter<Double>() {
+                            override fun toString(`object`: Double?): String {
+                                return `object`.toString()
+                            }
+
+                            override fun fromString(string: String?): Double {
+                                try{
+                                    return string?.replace(",", ".")?.toDouble() ?: 0.0
+                                }catch (e: NumberFormatException){
+                                    error("Ошибка", "Не удалось преобразовать в число")
+                                }
+                                return 0.0
+                            }
+                        })
                         setOnEditCommit { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
                         //setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
 
@@ -340,7 +356,14 @@ class ParentView : View(){
                     column("lesb", Area::lesb).apply {
                         makeEditable()
                         setOnEditCommit {
-                            columnOnEdit(it, 6){it.newValue.length > 4}
+                            var notValid = false
+                            try{
+                                val intv = it.newValue.toInt()
+                                notValid = intv > 9999 || intv < 0
+                            }catch (e: NumberFormatException){
+                                notValid = true
+                            }
+                            columnOnEdit(it, 6){notValid || it.newValue.length > 4}
                         }
                        // setOnEditCancel { columnOnEdit(it, 6){it.newValue.length > 4} }
                     }
