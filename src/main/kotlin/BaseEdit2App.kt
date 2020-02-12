@@ -43,6 +43,7 @@ class ParentView : View(){
     private var status = Label()
     private var addButton = Button()
     private var delButton = addButton
+    private var saveButton = addButton
 
     private var progress = ProgressBar().apply {
         vgrow = Priority.ALWAYS
@@ -105,6 +106,7 @@ class ParentView : View(){
 
                                 addButton.disableProperty().set(false)
                                 delButton.disableProperty().set(false)
+                                saveButton.disableProperty().set(false)
                                 if(!res) error("Ошибка", "Ошибка чтения файла")
 
                             }
@@ -169,6 +171,7 @@ class ParentView : View(){
                     val buttonFontSize = Dimension(7.0, Dimension.LinearUnits.pt)
 
                     button{
+                        disableProperty().set(true)
                         hboxConstraints { marginLeftRight(10.0) }
                         style {
                             fontSize = buttonFontSize
