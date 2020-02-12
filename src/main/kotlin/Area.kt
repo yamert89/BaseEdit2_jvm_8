@@ -20,7 +20,9 @@ class Area(number: Int, numberKv: Int, area: Double, categoryArea: String, categ
     var ozuProperty = SimpleStringProperty(this, "ozu", ozu)
     var ozu by ozuProperty
 
-    var lesbProperty = SimpleStringProperty(this, "lesb", lesb)
+    var lesbProperty = SpecStringProperty(this, "lesb", lesb){
+        val intV = lesb.toInt()
+        lesb.length > 4 || intV < 0 || intV > 9999}
     var lesb by lesbProperty
 
     init {
@@ -41,6 +43,18 @@ class AreaModel: ItemViewModel<Area>(){
 }
 
 class RawData(val admRegion: ByteArray, val data2: ByteArray, val data3: Int, val data4: ByteArray?)
+
+class SpecStringProperty(bean: Any, name: String, value: String, val condition: () -> Boolean) : SimpleStringProperty(bean, name, value){
+    override fun setValue(v: String?) {
+        if (condition()) {
+            throw IllegalStateException("Произошла попытка присвоить недопустимое значение")
+        }
+        super.setValue(v)
+    }
+}
+
+
+
 
 
 
