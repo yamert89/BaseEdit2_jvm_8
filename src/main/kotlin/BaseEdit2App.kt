@@ -56,8 +56,15 @@ class ParentView : View(){
         primaryStage.setOnCloseRequest {
             AppPreferences.savePreferences()
             if (controller.tableData.isEmpty()) return@setOnCloseRequest
-            confirm("Подтверждение", "Сохранить?", confirmButton = ButtonType.OK, cancelButton = ButtonType.NO){
+            /*confirm("Подтверждение", "Сохранить?",
+                confirmButton = ButtonType.OK, cancelButton = ButtonType.NO,
+                owner = primaryStage){
                 if (!controller.preSaveCheck()) return@setOnCloseRequest
+                controller.save(null)
+            }*/
+            alert(Alert.AlertType.CONFIRMATION, "Сохранить?", null, ButtonType.OK, ButtonType.CANCEL, owner = primaryStage, title = "Подтверждение"){
+                if (it == ButtonType.CANCEL) return@setOnCloseRequest
+                if (!controller.preSaveCheck()) information("Операция закрытия необратима. Файл будет сохранен с ошибками")
                 controller.save(null)
             }
 
@@ -141,12 +148,6 @@ class ParentView : View(){
                     }
                 }
                 menu("?"){
-                    item("Горячие клавиши"){
-                        action {
-                            information("Горячие клавиши", "Num+ - добавить выдел\n" +
-                                    "Num- - удалить выдел")
-                        }
-                    }
                     item("Настройки"){
                         action {
                             find(Preferences::class).openModal()
@@ -198,7 +199,7 @@ class ParentView : View(){
                         hboxConstraints {
                             marginLeftRight(6.0)
                         }
-                        tooltip("Добавить выдел (Num+)"){style{fontSize = buttonFontSize + 2}}
+                        tooltip("Добавить выдел ( Num + )"){style{fontSize = buttonFontSize + 2}}
 
                         style {
                             fontSize = buttonFontSize
@@ -258,7 +259,7 @@ class ParentView : View(){
                                 })
 
                         }
-                        tooltip("Удалить выдел (Num-)"){style{fontSize = buttonFontSize + 2}}
+                        tooltip("Удалить выдел ( Num - )"){style{fontSize = buttonFontSize + 2}}
                         shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
                     }
 
@@ -303,7 +304,21 @@ class ParentView : View(){
                     isEditable = true
                     readonlyColumn("Кв", Area::numberKv)
                      column("Выд", Area::number).apply {
-                         makeEditable()
+                         makeEditable(object: StringConverter<Int>(){
+                             override fun toString(`object`: Int?): String {
+                                 return `object`.toString()
+                             }
+
+                             override fun fromString(string: String?): Int {
+                                 try{
+                                     return string?.toInt() ?: 0
+                                 }catch (e: Exception){
+                                     error("Ошибка", "Не удалось преобразовать в число")
+                                 }
+                                 return 0
+                             }
+
+                         })
 
                         /* setOnEditStart {
                              println(it.newValue ?: "null")
