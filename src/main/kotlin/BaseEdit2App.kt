@@ -1,6 +1,7 @@
 import javafx.animation.FadeTransition
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.Property
+import javafx.event.EventHandler
 import javafx.event.EventType
 import javafx.geometry.Insets
 import javafx.scene.Parent
@@ -127,7 +128,7 @@ class ParentView : View(){
                             if (controller.tableData.isEmpty() || !controller.preSaveCheck()) return@action
                             runAsyncWithProgress {
                                 controller.save(null)
-                            }
+                            }ui {status.text = "Сохранено"}
                         }
                     }
                     item("Сохранить как .."){
@@ -142,7 +143,7 @@ class ParentView : View(){
                             val path = list[0].absolutePath
                             runAsyncWithProgress {
                                 controller.save(path)
-                            }
+                            }ui {status.text = "Сохранено"}
                         }
 
                     }
@@ -507,13 +508,18 @@ class ParentView : View(){
         }
 
         status = label{
+            style{
+                textFill = Color.RED
+                fontSize = Dimension(10.0, Dimension.LinearUnits.pt)
+            }
             val fade = FadeTransition()
+            fade.onFinished = EventHandler { this.text = "" }
             fade.node = this
             fade.fromValue = 0.0
             fade.toValue = 1.0
             fade.isAutoReverse = true
             fade.cycleCount = 2
-            fade.duration = javafx.util.Duration(1000.0)
+            fade.duration = javafx.util.Duration(1500.0)
             vboxConstraints {
                 margin = Insets(5.0)
                 minWidth = 500.0
