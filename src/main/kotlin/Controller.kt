@@ -124,9 +124,12 @@ class GenController: Controller() {
         val catProt = mutableListOf<Area>()
         val skipped = HashMap<Area, Int>()
         val zeroNumber = mutableListOf<Area>()
+        val lkWithZero = mutableListOf<Area>()
         val map = mutableMapOf<Int, MutableList<Int>>()
         tableData.forEach {
             if (it.categoryProtection == "-") catProt.add(it)
+            val intVal = it.categoryArea.toInt()
+            if (intVal in 1108..1207 && it.area == 0.0) lkWithZero.add(it)
             if(it.number == 0) zeroNumber.add(it)
             if (!map.containsKey(it.numberKv)) map[it.numberKv] = mutableListOf()
             map[it.numberKv]!!.add(it.number)
@@ -163,6 +166,7 @@ class GenController: Controller() {
         if (dublicate.size > 0){
             message += "\nДубликаты в ${dublicate.joinToString { "кв: ${it.numberKv} выд: ${it.number}"}}"
         }
+        if (lkWithZero.isNotEmpty()) message += "\nЛк с нулевой площадью в ${lkWithZero.joinToString { "кв: ${it.numberKv} выд: ${it.number}" }}"
         if (sumAreasForKv != null && AppPreferences.checkAreas){
             val resMap = HashMap<Int, Double>()
             val check = calculateAreasForKv()
