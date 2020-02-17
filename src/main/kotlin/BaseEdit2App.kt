@@ -63,7 +63,7 @@ class ParentView : View(){
                 if (!controller.preSaveCheck()) return@setOnCloseRequest
                 controller.save(null)
             }*/
-            alert(Alert.AlertType.CONFIRMATION, "Сохранить?", null, ButtonType.OK, ButtonType.CANCEL, owner = primaryStage, title = "Подтверждение"){
+            alert(Alert.AlertType.CONFIRMATION, "Сохранить?", null, ButtonType.OK, ButtonType.NO, owner = primaryStage, title = "Подтверждение"){
                 if (it == ButtonType.CANCEL) return@setOnCloseRequest
                 if (!controller.preSaveCheck()) information("Операция закрытия необратима. Файл будет сохранен с ошибками")
                 controller.save(null)
@@ -355,9 +355,14 @@ class ParentView : View(){
 
                             override fun fromString(string: String?): Double {
                                 try{
-                                    return string?.replace(",", ".")?.toDouble() ?: 0.0
+                                    if(string == null) return 0.0
+                                    val string2 = string.replace(",", ".")
+                                    if(string2.get(string2.length - 2) != '.') throw Exception()
+                                    return string2.toDouble()
                                 }catch (e: NumberFormatException){
                                     error("Ошибка", "Не удалось преобразовать в число")
+                                }catch (e: Exception){
+                                    error("Ошибка", "Введите десятичное число с одним знаком после запятой")
                                 }
                                 return 0.0
                             }
