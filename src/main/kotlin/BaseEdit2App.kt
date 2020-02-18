@@ -64,7 +64,7 @@ class ParentView : View(){
                 controller.save(null)
             }*/
             alert(Alert.AlertType.CONFIRMATION, "Сохранить?", null, ButtonType.OK, ButtonType.NO, owner = primaryStage, title = "Подтверждение"){
-                if (it == ButtonType.CANCEL) return@setOnCloseRequest
+                if (it == ButtonType.NO) return@setOnCloseRequest
                 if (!controller.preSaveCheck()) information("Операция закрытия необратима. Файл будет сохранен с ошибками")
                 controller.save(null)
             }
@@ -492,10 +492,10 @@ class ParentView : View(){
                                     par2Key!!.value to par2Val!!.text,
                                     parRes!!.value to parResVal!!.text)
 
-                                when(res){
+                                when(res[0]){
                                     0 -> error("Отмена", "Искомые записи не найдены")
                                     -1 -> error("Отмена", "Неправильное значение")
-                                    1 -> status.text = "Операция выполнена"
+                                    1 -> status.text = "Операция выполнена. Обновлено ${res[1]} записей"
                                 }
 
 

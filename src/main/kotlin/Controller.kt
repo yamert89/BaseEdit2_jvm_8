@@ -39,7 +39,10 @@ class GenController: Controller() {
         print("init data done")
     }
 
-    fun executeUtil(param1: Pair<Any?, String>, param2: Pair<Any?, String>, resParam: Pair<Any, String>): Int{
+    /*
+    * return array where 0-index - code, 1-index - number of rows
+    * */
+    fun executeUtil(param1: Pair<Any?, String>, param2: Pair<Any?, String>, resParam: Pair<Any, String>): Array<Int>{
         println("Записей было ${tableData.size}")
 
         val filteredData = tableData.filter {
@@ -71,37 +74,37 @@ class GenController: Controller() {
         val tempList = HashMap<String, Area>()
 
         filteredData.forEach { tempList["${it.numberKv}|${it.number}|${it.categoryArea}"] = it }
-        if(tempList.isEmpty()) return 0
+        if(tempList.isEmpty()) return arrayOf(0)
 
         try {
             tempList.forEach {
                 when(resParam.first){
                     dataTypes.CATEGORY_AREA -> {
                         val intView = resParam.second.toInt()
-                        if(resParam.second.length != 4 || (intView < 1101 || intView > 2556)) return -1
+                        if(resParam.second.length != 4 || (intView < 1101 || intView > 2556)) return arrayOf(-1)
                         it.value.categoryArea = resParam.second
                     }
                     dataTypes.CATEGORY_PROTECTION -> {
                         val contKey = dataTypes.categoryProtection.containsKey(resParam.second)
                         val contValue = dataTypes.categoryProtection.containsValue(resParam.second)
-                        if(!contKey && !contValue) return -1
+                        if(!contKey && !contValue) return arrayOf(-1)
                         it.value.categoryProtection = if(contKey) dataTypes.categoryProtection[resParam.second] else resParam.second
                     }
                     dataTypes.OZU -> {
                         val conKey = dataTypes.ozu.containsKey(resParam.second)
                         val contValue = dataTypes.ozu.containsValue(resParam.second)
-                        if(!conKey && !contValue) return -1
+                        if(!conKey && !contValue) return arrayOf(-1)
                         it.value.ozu = if (conKey) dataTypes.ozu[resParam.second] else resParam.second
                     }
                     dataTypes.LESB -> {
-                        if (resParam.second.length != 4) return -1
+                        if (resParam.second.length != 4) return arrayOf(-1)
                         it.value.lesb = resParam.second
                     }
                 }
             }
         }catch (e: Exception){
 
-            return -1
+            return arrayOf(-1)
         }
 
         val indexedMap = HashMap<Int, Area>()
@@ -113,7 +116,7 @@ class GenController: Controller() {
         }
         indexedMap.forEach { tableData.set(it.key, it.value) }
         println("Записей стало ${tableData.size}")
-        return 1
+        return arrayOf(1, tempList.size)
 
     }
 
