@@ -174,7 +174,7 @@ class ParentView : View(){
                     item("О программе"){
                         action {
                             information(
-                                "BaseEdit2 (SKL редактор)  v.1.2",
+                                "BaseEdit2 (SKL редактор)  v.1.3",
                                 "Порохин Александр\n\nРОСЛЕСИНФОРГ 2020",
                                 owner = primaryStage
                             )
