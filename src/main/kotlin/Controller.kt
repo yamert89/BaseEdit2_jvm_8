@@ -10,17 +10,20 @@ import java.lang.IllegalArgumentException
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.abs
 
 class GenController: Controller() {
     val tableData = emptyList<Area>().toMutableList().asObservable()
+    val deletedRows = ArrayDeque<Pair<Int, Area>>()
     var sumAreasForKv :  Map<Int, Double>? = null
     private var filePath = ""
     private val dataTypes = DataTypes()
 
 
-    fun getData(): ObservableList<Area> {
 
+    fun getData(): ObservableList<Area> {
         return tableData
     }
 
@@ -38,6 +41,7 @@ class GenController: Controller() {
         if(AppPreferences.checkAreas) sumAreasForKv = calculateAreasForKv()
         print("init data done")
     }
+
 
     /*
     * return array where 0-index - code, 1-index - number of rows

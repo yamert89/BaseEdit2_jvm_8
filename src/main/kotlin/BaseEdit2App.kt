@@ -1,4 +1,7 @@
 import javafx.animation.FadeTransition
+import javafx.animation.KeyFrame
+import javafx.animation.KeyValue
+import javafx.animation.Timeline
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.Property
 import javafx.event.EventHandler
@@ -14,6 +17,7 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Background
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
+import javafx.util.Duration
 import javafx.util.StringConverter
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
@@ -148,6 +152,19 @@ class ParentView : View(){
 
                     }
                 }
+                menu("Правка"){
+                    item("Восстановить удалённый выдел"){
+                        action{
+                            if(controller.deletedRows.isEmpty()) {
+                                status.text = "Нет удалённых выделов"
+                                return@action
+                            }
+                            val pairOfArea = controller.deletedRows.pollLast() as Pair<Int, Area>
+                            controller.tableData[pairOfArea.first] = pairOfArea.second
+                            status.text = "Выдел ${pairOfArea.second.number} квартала ${pairOfArea.second.numberKv} восстановлен"
+                        }
+                    }
+                }
                 menu("?"){
                     item("Настройки"){
                         action {
@@ -253,9 +270,9 @@ class ParentView : View(){
                                 owner = primaryStage,
                                 actionFn = { buttonType ->
                                     if (buttonType == ButtonType.OK) {
+                                        controller.deletedRows.add(selectedRow to controller.tableData[selectedRow])
                                         controller.tableData.removeAt(selectedRow)
                                         tableView!!.selectionModel.select(selectedRow + 1, selectedCol)
-
                                     }
                                 })
 
@@ -515,23 +532,34 @@ class ParentView : View(){
         status = label{
             style{
                 textFill = Color.RED
-                fontSize = Dimension(10.0, Dimension.LinearUnits.pt)
+                fontSize = Dimension(11.0, Dimension.LinearUnits.pt)
             }
-            val fade = FadeTransition()
+            /*val fade = FadeTransition()
             fade.onFinished = EventHandler { this.text = "" }
             fade.node = this
-            fade.fromValue = 0.0
-            fade.toValue = 1.0
+            fade.fromValue = 1.0
+            fade.toValue = 0.0
             fade.isAutoReverse = true
-            fade.cycleCount = 2
-            fade.duration = javafx.util.Duration(1500.0)
+            fade.cycleCount = 1
+            fade.duration = javafx.util.Duration(2500.0)*/
+
+
             vboxConstraints {
                 margin = Insets(5.0)
                 minWidth = 500.0
             }
 
+            val timeLine = Timeline().apply {
+                keyFrames.add(KeyFrame(Duration(0.0), KeyValue(this@label.opacityProperty(), 0.0)))
+                keyFrames.add(KeyFrame(Duration(500.0), KeyValue(this@label.opacityProperty(), 1.0)))
+                keyFrames.add(KeyFrame(Duration(2000.0), KeyValue(this@label.opacityProperty(), 1.0)))
+                keyFrames.add(KeyFrame(Duration(3000.0), KeyValue(this@label.opacityProperty(), 0.0)))
+            }
+
+
             textProperty().onChange {
-                fade.playFromStart()
+                //fade.playFromStart()
+                timeLine.playFromStart()
             }
         }
         //progress = progressbar(0.0) {
