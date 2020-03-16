@@ -371,11 +371,13 @@ class ParentView : View(){
                             }
 
                             override fun fromString(string: String?): Double {
+                                var d = 0.0
                                 try{
-                                    if(string == null) return 0.0
+                                    if(string == null) return d
                                     val string2 = string.replace(",", ".")
-                                    if(string2.get(string2.length - 2) != '.') throw Exception()
-                                    return string2.toDouble()
+                                    d = string2.toDouble()
+                                    if(string2.contains(".") && string2.length - string2.indexOfLast { it == '.' } > 2) throw Exception()
+                                    return d
                                 }catch (e: NumberFormatException){
                                     error("Ошибка", "Не удалось преобразовать в число")
                                 }catch (e: Exception){
