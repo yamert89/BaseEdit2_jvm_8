@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "BaseEdit2"
-version = "1.3"
+version = "1.3.1"
 var buildVersion = 0
 
 
@@ -77,7 +77,7 @@ tasks {
     }
     jar{
         dependsOn(getByName("changeBuildVersion"))
-        archieveName = "BaseEdit2-${project.version}b${buildVersion}.jar"
+        archieveName = "BaseEdit2-${project.version}.b${buildVersion}.jar"
         manifest {
             attributes( "Main-Class" to "BaseEdit2AppKt")
         }
