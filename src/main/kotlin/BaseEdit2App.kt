@@ -28,6 +28,7 @@ import java.net.URI
 
 
 fun main() {
+
     launch<BaseEdit2>()
 
 }
@@ -239,8 +240,7 @@ class ParentView : View(){
                                 return@action
                             }
                             var item = selected!!
-                            item =
-                                Area(0, item.numberKv, 0.0, item.categoryArea, "-", item.ozu, item.lesb, item.rawData)
+                            item = Area(0, item.numberKv, 0.0, item.categoryArea, "-", item.ozu, item.lesb, item.rawData)
 
                             controller.tableData.add(selectedRow, item)
 
@@ -328,10 +328,15 @@ class ParentView : View(){
                              }
 
                              override fun fromString(string: String?): Int {
+                                 var v = 0
                                  try{
-                                     return string?.toInt() ?: 0
+                                     v = string?.toInt() ?: v
+                                     if(controller.tableData.any { it.numberKv == selected!!.numberKv && it.number == v }) throw IllegalStateException()
+                                     return v
+                                 }catch (e: IllegalStateException){
+                                     error("Ошибка", "Выдел $v уже есть в базе")
                                  }catch (e: Exception){
-                                     error("Ошибка", "Не удалось преобразовать в число")
+                                    error("Ошибка", "Не удалось преобразовать в число")
                                  }
                                  return 0
                              }
