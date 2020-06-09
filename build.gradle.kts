@@ -36,6 +36,7 @@ sourceSets{
 }
 project.configurations.implementation.isCanBeResolved = true
 var archieveName = ""
+val startFolder = file("C:\\Users\\porohin\\Desktop\\BaseEdit2_main_jar\\")
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
@@ -56,25 +57,6 @@ tasks {
         props.store(writer, "")
         writer.close()
     }
-
-    register<Copy>("copy") {
-        dependsOn(jar)
-        val archieveName = "BaseEdit2-${project.version}b${buildVersion}.jar"
-        val startF = file("$projectDir/build/libs/start.cmd")
-        startF.delete()
-        startF.createNewFile()
-        val writer = FileWriter(startF)
-        writer.write("start /B javaw -jar $archieveName")
-        writer.flush()
-        writer.close()
-        val buildD = "$projectDir/build/libs/"
-        val startFolder = file("C:\\Users\\porohin\\Desktop\\BaseEdit2_main_jar\\")
-        from(file("$buildD/$archieveName"))
-        into(startFolder)
-        from(file("$buildD/start.cmd"))
-        into(startFolder)
-
-    }
     jar{
         dependsOn(getByName("changeBuildVersion"))
         archieveName = "BaseEdit2-${project.version}.b${buildVersion}.jar"
@@ -85,6 +67,29 @@ tasks {
         val c = configurations.implementation.get().files.map{ if(it.isDirectory) it else zipTree(it)}
         val d = project.dependencies
         from(c)
+    }
+
+    register("cleanStartDir"){
+        dependsOn(jar)
+        startFolder.listFiles()?.filter { it.name.endsWith(".jar") }?.forEach { delete(it.absolutePath) }
+    }
+
+    register<Copy>("copy") {
+        dependsOn(getByName("cleanStartDir"))
+        val archieveName = "BaseEdit2-${project.version}.b${buildVersion}.jar"
+        val startF = file("$projectDir/build/libs/start.cmd")
+        startF.delete()
+        startF.createNewFile()
+        val writer = FileWriter(startF)
+        writer.write("start /B javaw -jar $archieveName")
+        writer.flush()
+        writer.close()
+        val buildD = "$projectDir/build/libs/"
+        from(file("$buildD/$archieveName"))
+        into(startFolder)
+        from(file("$buildD/start.cmd"))
+        into(startFolder)
+
     }
 
 
