@@ -23,6 +23,8 @@ object AppPreferences {
     val checkAreasProperty = MyBooleanProperty()
     var checkAreas by checkAreasProperty
 
+    var recentPath = ""
+
 
 
     init {
@@ -34,6 +36,7 @@ object AppPreferences {
                 checkSkipped = getProperty("chSkipped") == "1"
                 saveBackups = getProperty("saveBack") == "1"
                 checkAreas = getProperty("checkAreas") == "1"
+                recentPath = getProperty("recentPath") ?: ""
             }
 
         } else file.createNewFile()
@@ -46,6 +49,7 @@ object AppPreferences {
         properties["chSkipped"] = if (checkSkipped) "1" else "0"
         properties["saveBack"] = if (saveBackups) "1" else "0"
         properties["checkAreas"] = if (checkAreas) "1" else "0"
+        if (recentPath.isNotEmpty()) properties["recentPath"] = recentPath
         properties.store(FileWriter(file), "")
     }
 }

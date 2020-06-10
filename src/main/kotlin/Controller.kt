@@ -28,7 +28,6 @@ class GenController: Controller() {
     }
 
     fun save(path: String?){
-
         if (path == null){
             if (AppPreferences.saveBackups) File(filePath).renameTo(File("${filePath}_${LocalTime.now().format(DateTimeFormatter.ofPattern("HH_mm_ss"))}.bak"))
         }else filePath = path

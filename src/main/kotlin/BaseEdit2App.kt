@@ -25,9 +25,11 @@ import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
 import tornadofx.Stylesheet.Companion.disabled
 import tornadofx.Stylesheet.Companion.progressBar
+import java.io.File
 import java.lang.NumberFormatException
 import java.lang.reflect.Field
 import java.net.URI
+import java.nio.file.Paths
 
 
 fun main() {
@@ -55,6 +57,7 @@ class ParentView : View(){
     private var addButton = Button()
     private var delButton = addButton
     private var saveButton = addButton
+    private var menuBar: MenuBar? = null
 
     private var progress = ProgressBar().apply {
         vgrow = Priority.ALWAYS
@@ -95,7 +98,28 @@ class ParentView : View(){
 
     override val root = vbox {
         try {
-            menubar {
+
+            fun openFile(file: File){
+                controller.tableData.clear()
+                var res = false
+                menuBar!!.runAsyncWithProgress(progress = progress) {
+                    try {
+                        controller.initData(file)
+                        res = true
+                        AppPreferences.recentPath = file.absolutePath
+                    }catch (e: Exception){
+                        return@runAsyncWithProgress
+                    }
+                    println("end init")
+                } ui {
+                    addButton.disableProperty().set(false)
+                    delButton.disableProperty().set(false)
+                    saveButton.disableProperty().set(false)
+                    if(!res) error("Ошибка", "Ошибка чтения файла")
+                }
+            }
+
+            menuBar = menubar {
                 padding = Insets(0.0)
                 menu("Файл"){
                     item("Открыть"){
@@ -108,27 +132,14 @@ class ParentView : View(){
                             )
 
                             if (files.isEmpty()) return@action
-                            controller.tableData.clear()
+                            openFile(files[0])
+                        }
+                    }
+                    val recentPath = Paths.get(AppPreferences.recentPath)
 
-
-                            var res = false
-                            runAsyncWithProgress(progress = progress) {
-                                try {
-                                    controller.initData(files[0])
-                                    res = true
-                                }catch (e: Exception){
-                                    return@runAsyncWithProgress
-                                }
-                                println("end init")
-                            } ui {
-
-                                addButton.disableProperty().set(false)
-                                delButton.disableProperty().set(false)
-                                saveButton.disableProperty().set(false)
-                                if(!res) error("Ошибка", "Ошибка чтения файла")
-
-                            }
-
+                    if (recentPath.toString().isNotEmpty() && recentPath.toFile().exists()) item("Открыть последний: <${recentPath.fileName}>"){
+                        action {
+                            openFile(recentPath.toFile())
                         }
                     }
                     item("Сохранить"){
@@ -622,6 +633,8 @@ class ParentView : View(){
 
 
 
+
+
 }
 
 class Preferences : Fragment("Настройки"){
@@ -661,5 +674,4 @@ class Preferences : Fragment("Настройки"){
 
     }
 }
-
 
