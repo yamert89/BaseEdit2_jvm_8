@@ -7,6 +7,7 @@ import javafx.beans.property.Property
 import javafx.event.EventHandler
 import javafx.event.EventType
 import javafx.geometry.Insets
+import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.*
 import javafx.scene.control.cell.TextFieldTableCell
@@ -15,6 +16,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Background
+import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.util.Duration
@@ -24,6 +26,7 @@ import tornadofx.*
 import tornadofx.Stylesheet.Companion.disabled
 import tornadofx.Stylesheet.Companion.progressBar
 import java.lang.NumberFormatException
+import java.lang.reflect.Field
 import java.net.URI
 
 
@@ -440,14 +443,41 @@ class ParentView : View(){
             tab("Пакетное обновление"){
                 var par1Key: ComboBox<String>? = null
                 var par2Key: ComboBox<String>? = null
-                var par1Val: TextField? = null
-                var par2Val: TextField? = null
+                var par1Val: Node? = null
+                var par2Val: Node? = null
                 var parRes: ComboBox<String>? = null
-                var parResVal: TextField? = null
+                var parResVal: Node? = null
 
                 isClosable = false
                 val margins = Insets(10.0)
                 vbox {
+                    fun initComboBoxChangeListener(comboBox: ComboBox<String>, fieldNumber: Int){
+                        comboBox.valueProperty().onChange {
+                            var newNode : Node? = null
+                            when(it){
+                                dataTypes.KV, dataTypes.CATEGORY_AREA, dataTypes.LESB -> newNode = TextField()
+                                dataTypes.CATEGORY_PROTECTION ->  newNode = ComboBox(dataTypes.categoryProtection.values.toList().toObservable()).apply { selectionModel.select(0) }
+                                dataTypes.OZU -> newNode = ComboBox(dataTypes.ozu.values.toList().toObservable()).apply { selectionModel.select(0) }
+                                else -> newNode = TextField().apply{this.isDisable = true}
+                            }
+                            when(fieldNumber){
+                                1 -> {
+                                    par1Val!!.replaceWith(newNode)
+                                    par1Val = newNode
+                                }
+                                2 -> {
+                                    par2Val!!.replaceWith(newNode)
+                                    par2Val = newNode
+                                }
+                                3 -> {
+                                    parResVal!!.replaceWith(newNode)
+                                    parResVal = newNode
+                                }
+                            }
+
+                        }
+                    }
+
                     padding = margins
                     val filterParameters = dataTypes.filterParameters
                     hbox {
@@ -456,24 +486,26 @@ class ParentView : View(){
                     }
                     hbox {
                         vboxConstraints { margin = margins }
-                        par1Key = combobox(values = filterParameters) { }
+                        par1Key = combobox(values = filterParameters) {}
+                        initComboBoxChangeListener(par1Key as ComboBox<String>, 1)
                         label("="){
                             hboxConstraints {
                                 marginLeftRight(10.0)
                             }
                         }
-                        par1Val = textfield { }
+                        par1Val = textfield { isDisable = true }
 
                     }
                     hbox {
                         vboxConstraints { margin = margins }
                         par2Key = combobox(values = filterParameters) { }
+                        initComboBoxChangeListener(par2Key as ComboBox<String>, 2)
                         label("="){
                             hboxConstraints {
                                 marginLeftRight(10.0)
                             }
                         }
-                        par2Val = textfield {  }
+                        par2Val = textfield { isDisable = true }
 
                     }
                     hbox{
@@ -485,17 +517,16 @@ class ParentView : View(){
                         vboxConstraints { margin = margins }
 
                         parRes = combobox(values = dataTypes.executeParameters) {  }
+                        initComboBoxChangeListener(parRes!!, 3)
                         label("="){
                             hboxConstraints {
                                 marginLeftRight(10.0)
                             }
                         }
-                        parResVal = textfield{}
+                        parResVal = textfield { isDisable = true }
 
 
                     }
-
-
 
 
                     vbox{
@@ -510,11 +541,25 @@ class ParentView : View(){
                                     error("Значения не выбраны")
                                     return@action
                                 }
+                                val param1: String = when(par1Val){ //todo more pithiness
+                                    is ComboBox<*> -> (par1Val as ComboBox<String>).selectedItem!!
+                                    else -> (par1Val as TextField).text
+                                }
+
+                                val param2: String = when(par2Val){
+                                    is ComboBox<*> -> (par2Val as ComboBox<String>).selectedItem!!
+                                    else -> (par2Val as TextField).text
+                                }
+
+                                val resParam = when(parResVal){
+                                    is ComboBox<*> -> (parResVal as ComboBox<String>).selectedItem!!
+                                    else -> (parResVal as TextField).text
+                                }
 
                                 val res = controller.executeUtil(
-                                    par1Key!!.value to par1Val!!.text,
-                                    par2Key!!.value to par2Val!!.text,
-                                    parRes!!.value to parResVal!!.text)
+                                    par1Key!!.value to param1,
+                                    par2Key!!.value to param2,
+                                    parRes!!.value to resParam)
 
                                 when(res[0]){
                                     0 -> error("Отмена", "Искомые записи не найдены")
@@ -529,6 +574,7 @@ class ParentView : View(){
                         }
                         vboxConstraints { margin = margins }
                     }
+
                 }
 
             }
@@ -574,6 +620,8 @@ class ParentView : View(){
 
 
     }
+
+
 
 
 

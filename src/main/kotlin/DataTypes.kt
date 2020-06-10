@@ -1,6 +1,6 @@
 class DataTypes {
 
-    val EMTPTY = ""
+    val EMPTY = ""
     val KV = "кв"
     val CATEGORY_AREA = "кат. земель"
     val CATEGORY_PROTECTION = "кат. защитности"
@@ -11,7 +11,7 @@ class DataTypes {
     val categoryProtection: MutableMap<String, String> = mutableMapOf()
     val ozu: MutableMap<String, String> = mutableMapOf()
     val filterParameters = listOf(
-        EMTPTY,
+        EMPTY,
         KV,
         CATEGORY_AREA,
         CATEGORY_PROTECTION,
@@ -20,7 +20,7 @@ class DataTypes {
     )
 
     val executeParameters = listOf(
-        EMTPTY,
+        EMPTY,
         CATEGORY_AREA,
         CATEGORY_PROTECTION,
         OZU,

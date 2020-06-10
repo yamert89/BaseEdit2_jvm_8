@@ -50,7 +50,7 @@ class GenController: Controller() {
         println("Записей было ${tableData.size}")
 
         val filteredData = tableData.filter {
-            (if(param1.first != dataTypes.EMTPTY && param1.first != null) {
+            (if(param1.first != dataTypes.EMPTY && param1.first != null) {
                 when(param1.first){
                     dataTypes.KV -> it.numberKv == param1.second.toInt()
                     dataTypes.CATEGORY_AREA -> it.categoryArea == param1.second
