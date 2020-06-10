@@ -209,7 +209,7 @@ class ParentView : View(){
                             if (controller.tableData.isEmpty() || !controller.preSaveCheck()) return@action
                             runAsyncWithProgress {
                                 controller.save(null)
-                            }
+                            }ui{status.text = "Сохранено"}
                         }
                         tooltip("Сохранить"){style{fontSize = buttonFontSize + 2}}
                     }
