@@ -178,7 +178,7 @@ class ParentView : View(){
                     item("О программе"){
                         action {
                             information(
-                                "BaseEdit2 (SKL редактор)  v.1.3",
+                                "BaseEdit2 (SKL редактор)  v.1.4.1",
                                 "Порохин Александр\n\nРОСЛЕСИНФОРГ 2020",
                                 owner = primaryStage
                             )
@@ -530,10 +530,7 @@ class ParentView : View(){
 
 
                     vbox{
-                        label("Формат значений должен совпадать с табличным "){
-                            vboxConstraints { maxWidth = 400.0 }
 
-                        }
                         button("Применить") {
                             action{
                                 if(controller.tableData.isEmpty()) error("Oтмена","Таблица пуста"){return@action}
