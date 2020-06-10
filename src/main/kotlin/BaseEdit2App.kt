@@ -36,7 +36,7 @@ fun main() {
 
 }
 
-
+//todo coloring rows
 class BaseEdit2: App(ParentView::class)
 
 class ParentView : View(){
@@ -243,7 +243,7 @@ class ParentView : View(){
                                 return@action
                             }
                             var item = selected!!
-                            item = Area(0, item.numberKv, 0.0, item.categoryArea, "-", item.ozu, item.lesb, item.rawData)
+                            item = Area(0, item.numberKv, 0.0, item.categoryArea, dataTypes.EMPTY_CATEGORY_PROTECTION, item.ozu, item.lesb, item.rawData)
 
                             controller.tableData.add(selectedRow, item)
 
@@ -440,7 +440,7 @@ class ParentView : View(){
                 }
             }
 
-            tab("Пакетное обновление"){
+            tab("Пакетное обновление"){//todo inactive while file not opened
                 var par1Key: ComboBox<String>? = null
                 var par2Key: ComboBox<String>? = null
                 var par1Val: Node? = null
@@ -456,7 +456,7 @@ class ParentView : View(){
                             var newNode : Node? = null
                             when(it){
                                 dataTypes.KV, dataTypes.CATEGORY_AREA, dataTypes.LESB -> newNode = TextField()
-                                dataTypes.CATEGORY_PROTECTION ->  newNode = ComboBox(dataTypes.categoryProtection.values.toList().toObservable()).apply { selectionModel.select(0) }
+                                dataTypes.CATEGORY_PROTECTION ->  newNode = ComboBox(dataTypes.categoryProtection.values.toList().plus(dataTypes.EMPTY_CATEGORY_PROTECTION).toObservable()).apply { selectionModel.select(0) }
                                 dataTypes.OZU -> newNode = ComboBox(dataTypes.ozu.values.toList().toObservable()).apply { selectionModel.select(0) }
                                 else -> newNode = TextField().apply{this.isDisable = true}
                             }

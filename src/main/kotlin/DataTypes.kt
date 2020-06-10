@@ -6,6 +6,7 @@ class DataTypes {
     val CATEGORY_PROTECTION = "кат. защитности"
     val OZU = "озу"
     val LESB = "lesb"
+    val EMPTY_CATEGORY_PROTECTION = "-"
 
     //val categoryArea: MutableMap<String, String> = mutableMapOf()
     val categoryProtection: MutableMap<String, String> = mutableMapOf()
@@ -47,6 +48,7 @@ class DataTypes {
         ))
 
         categoryProtection.putAll(mapOf(
+            EMPTY_CATEGORY_PROTECTION to EMPTY_CATEGORY_PROTECTION,
             "304601" to "эксплуатационные",
             "121400" to "водоохранная",
             "110100" to "запретные полосы",
