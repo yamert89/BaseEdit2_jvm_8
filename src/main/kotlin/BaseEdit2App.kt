@@ -410,7 +410,12 @@ class ParentView : View(){
 
                     }
                     column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
-                    readonlyColumn("К. земель", Area::categoryArea)
+                    readonlyColumn("К. земель", Area::categoryArea).cellFormat {
+                        text = it
+                        style{
+                            if(it == "1108" || it == "1201") backgroundColor += c("#036907", 0.3)
+                        }
+                    }
                     column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
                     column("lesb", Area::lesb).apply {
                         makeEditable()
