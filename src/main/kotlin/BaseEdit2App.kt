@@ -456,13 +456,15 @@ class ParentView : View(){
                 }
             }
 
-            tab("Пакетное обновление"){//todo inactive while file not opened
+            tab("Пакетное обновление"){
                 var par1Key: ComboBox<String>? = null
                 var par2Key: ComboBox<String>? = null
                 var par1Val: Node? = null
                 var par2Val: Node? = null
                 var parRes: ComboBox<String>? = null
                 var parResVal: Node? = null
+
+                enableWhen { controller.fileOpened }
 
                 isClosable = false
                 val margins = Insets(10.0)

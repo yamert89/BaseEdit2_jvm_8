@@ -1,3 +1,5 @@
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.value.ObservableBooleanValue
 import javafx.collections.ObservableList
 import javafx.scene.control.Alert
 import tornadofx.Controller
@@ -20,6 +22,7 @@ class GenController: Controller() {
     var sumAreasForKv :  Map<Int, Double>? = null
     private var filePath = ""
     private val dataTypes = DataTypes()
+    var fileOpened = SimpleBooleanProperty(false)
 
 
 
@@ -38,6 +41,7 @@ class GenController: Controller() {
         tableData.addAll(FileExecutor().parseFile(file))
         filePath = file.absolutePath
         if(AppPreferences.checkAreas) sumAreasForKv = calculateAreasForKv()
+        fileOpened.value = true
         print("init data done")
     }
 
