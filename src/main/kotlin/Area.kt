@@ -25,9 +25,9 @@ class Area(number: Int, numberKv: Int, area: Double, categoryArea: String, categ
         lesb.length > 4 || intV < 0 || intV > 9999}
     var lesb by lesbProperty
 
-    init {
 
-    }
+
+
 
 }
 

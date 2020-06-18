@@ -25,6 +25,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     testCompile("junit", "junit", "4.12")
     implementation("no.tornado:tornadofx:1.7.19")
+    runtimeOnly("org.jetbrains.kotlin" , "kotlin-reflect", "1.4-M2-release-98")
 }
 
 configure<JavaPluginConvention> {

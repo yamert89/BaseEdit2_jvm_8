@@ -11,6 +11,8 @@ fun <T> T.addZeroes(size: Int): ByteArray{
 
 }
 
+fun String.isLk() = this == "1108" || this == "1201"
+
 
 
 /*

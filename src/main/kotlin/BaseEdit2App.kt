@@ -1,34 +1,21 @@
-import javafx.animation.FadeTransition
 import javafx.animation.KeyFrame
 import javafx.animation.KeyValue
 import javafx.animation.Timeline
-import javafx.beans.property.IntegerProperty
 import javafx.beans.property.Property
-import javafx.event.EventHandler
-import javafx.event.EventType
 import javafx.geometry.Insets
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.control.*
 import javafx.scene.control.cell.TextFieldTableCell
-import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
-import javafx.scene.input.KeyEvent
-import javafx.scene.layout.Background
-import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
+import javafx.util.Callback
 import javafx.util.Duration
 import javafx.util.StringConverter
-import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
-import tornadofx.Stylesheet.Companion.disabled
-import tornadofx.Stylesheet.Companion.progressBar
 import java.io.File
 import java.lang.NumberFormatException
-import java.lang.reflect.Field
-import java.net.URI
 import java.nio.file.Paths
 
 
@@ -58,6 +45,7 @@ class ParentView : View(){
     private var delButton = addButton
     private var saveButton = addButton
     private var menuBar: MenuBar? = null
+    private var loaded = false
 
     private var progress = ProgressBar().apply {
         vgrow = Priority.ALWAYS
@@ -258,7 +246,7 @@ class ParentView : View(){
 
                             controller.tableData.add(selectedRow, item)
 
-                            tableView!!.selectionModel!!.select(selectedRow, tableView!!.columns[1])
+                            tableView!!.selectionModel!!.select(selectedRow, tableView!!.columns[2])
 
                         }
 
@@ -384,7 +372,7 @@ class ParentView : View(){
 
 
                     column("Площадь", Area::area).apply {
-                        makeEditable(object: StringConverter<Double>() {
+                        /*makeEditable(object: StringConverter<Double>() {
                             override fun toString(`object`: Double?): String {
                                 return `object`.toString()
                             }
@@ -404,8 +392,46 @@ class ParentView : View(){
                                 }
                                 return 0.0
                             }
-                        })
+                        })*/
+                        cellFactory = Callback{TextFieldTableCell<Area, Double>().apply{
+
+                            itemProperty().onChange {
+                                //if(selected == null || this.tableRow.index != tableView.selectedCell?.row) return@onChange
+                                //if(this.tableRow.index != selectedRow && selectedItem?.categoryArea?.isLk() == false) return@onChange
+                                if(selected == null || !this.isSelected || it == null || this.tableRow.index != tableView.selectedCell?.row) return@onChange
+
+
+                               // if (it < 0.1 && selectedItem?.categoryArea?.isLk() == true) style = "-fx-background-color: rgba(255, 5, 5, 0.3);"
+                                //if (it < 0.1 && controller.tableData[this.tableRow.index].categoryArea.isLk()) style = "-fx-background-color: rgba(255, 0, 0, 0.3);"
+                                println(this.tableRow.index)
+                                if (it < 0.1 && controller.tableData[this.tableRow.index].categoryArea.isLk() && this.tableRow.index == selectedRow) style = "-fx-background-color: rgba(255, 0, 0, 0.3);"
+                                else style = ""
+
+                            }
+                            converter = object: StringConverter<Double>() {
+                                override fun toString(`object`: Double?): String {
+                                    return `object`.toString()
+                                }
+
+                                override fun fromString(string: String?): Double {
+                                    var d = 0.0
+                                    try{
+                                        if(string == null) return d
+                                        val string2 = string.replace(",", ".")
+                                        d = string2.toDouble()
+                                        if(string2.contains(".") && string2.length - string2.indexOfLast { it == '.' } > 2) throw Exception()
+                                        return d
+                                    }catch (e: NumberFormatException){
+                                        error("Ошибка", "Не удалось преобразовать в число")
+                                    }catch (e: Exception){
+                                        error("Ошибка", "Введите десятичное число с одним знаком после запятой")
+                                    }
+                                    return 0.0
+                                }
+                            }
+                        }}
                         setOnEditCommit { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
+
                         //setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
 
                     }
@@ -413,7 +439,7 @@ class ParentView : View(){
                     readonlyColumn("К. земель", Area::categoryArea).cellFormat {
                         text = it
                         style{
-                            if(it == "1108" || it == "1201") backgroundColor += c("#036907", 0.3)
+                            if(it.isLk()) backgroundColor += c("#036907", 0.3)
                         }
                     }
                     column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
@@ -635,6 +661,14 @@ class ParentView : View(){
 
 
     }
+
+   /* fun <S, T> TableColumn<S, T>.cellFormat(scope: Scope = FX.defaultScope, formatter: TableCell<S, T>.(T) -> Unit) {
+        properties["tornadofx.cellFormat"] = formatter
+        if (properties["tornadofx.cellFormatCapable"] != true)
+            cellFactory = Callback { EditableSmartTableCell<S, T>(scope, it) }
+    }*/
+
+
 
 
 
