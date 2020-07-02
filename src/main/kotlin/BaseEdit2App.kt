@@ -189,7 +189,7 @@ class ParentView : View(){
                     item("О программе"){
                         action {
                             information(
-                                "BaseEdit2 (SKL редактор)  v.1.4.1",
+                                "BaseEdit2 (SKL редактор)  v.1.4.2",
                                 "Порохин Александр\n\nРОСЛЕСИНФОРГ 2020",
                                 owner = primaryStage
                             )
@@ -306,8 +306,10 @@ class ParentView : View(){
         }
         tabpane {
             vgrow = Priority.ALWAYS
+            //enableWhen { controller.fileOpened }
 
             tab("Редактор"){
+
                 vgrow = Priority.ALWAYS
                 isClosable = false
                 tableView = tableview(controller.getData()) {
@@ -463,9 +465,7 @@ class ParentView : View(){
                 var par2Val: Node? = null
                 var parRes: ComboBox<String>? = null
                 var parResVal: Node? = null
-
-                enableWhen { controller.fileOpened }
-
+                this.enableWhen(controller.fileOpened)
                 isClosable = false
                 val margins = Insets(10.0)
                 vbox {
