@@ -1,34 +1,21 @@
-import javafx.animation.FadeTransition
+import converters.AreaConverter
+import converters.NumberConverter
 import javafx.animation.KeyFrame
 import javafx.animation.KeyValue
 import javafx.animation.Timeline
-import javafx.beans.property.IntegerProperty
 import javafx.beans.property.Property
-import javafx.event.EventHandler
-import javafx.event.EventType
 import javafx.geometry.Insets
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.control.*
-import javafx.scene.control.cell.TextFieldTableCell
-import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
-import javafx.scene.input.KeyEvent
-import javafx.scene.layout.Background
-import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.util.Duration
-import javafx.util.StringConverter
-import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
-import tornadofx.Stylesheet.Companion.disabled
-import tornadofx.Stylesheet.Companion.progressBar
+import views.EditorInitFunction
 import java.io.File
 import java.lang.NumberFormatException
-import java.lang.reflect.Field
-import java.net.URI
 import java.nio.file.Paths
 
 
@@ -42,16 +29,9 @@ fun main() {
 class BaseEdit2: App(ParentView::class)
 
 class ParentView : View(){
-    private val controller: GenController by inject()
+    private val controller = find(GenController::class)
 
-    private var selected: Area? = null
-    private var selectedRow: Int = 0
-    private var selectedCol: TableColumn<Area, *>? = null
-    private var tableView: TableView<Area>? = null
-    private var editEvent: TableColumn.CellEditEvent<Area, String>? = null
     private val model: AreaModel by inject()
-    private val dataTypes = DataTypes()
-    private var colum: TableColumn<Area, String?>? = null
     private var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
     private var status = Label()
     private var addButton = Button()
@@ -249,16 +229,16 @@ class ParentView : View(){
                         graphic = imageView
 
                         action {
-                            if (selected == null) {
+                            if (controller.selected == null) {
                                 println("selected is null")
                                 return@action
                             }
-                            var item = selected!!
-                            item = Area(0, item.numberKv, 0.0, item.categoryArea, dataTypes.EMPTY_CATEGORY_PROTECTION, item.ozu, item.lesb, item.rawData)
+                            var item = controller.selected!!
+                            item = Area(0, item.numberKv, 0.0, item.categoryArea, DataTypes.EMPTY_CATEGORY_PROTECTION, item.ozu, item.lesb, item.rawData)
 
-                            controller.tableData.add(selectedRow, item)
+                            controller.addArea(item)
 
-                            tableView!!.selectionModel!!.select(selectedRow, tableView!!.columns[1])
+                            controller.tableView.selectionModel!!.select(controller.selectedRow, controller.tableView.columns[1])
 
                         }
 
@@ -284,9 +264,11 @@ class ParentView : View(){
                                 owner = primaryStage,
                                 actionFn = { buttonType ->
                                     if (buttonType == ButtonType.OK) {
-                                        controller.deletedRows.add(selectedRow to controller.tableData[selectedRow])
-                                        controller.tableData.removeAt(selectedRow)
-                                        tableView!!.selectionModel.select(selectedRow + 1, selectedCol)
+                                        with(controller){
+                                           deletedRows.add(selectedRow to tableData[selectedRow])
+                                           tableData.removeAt(selectedRow)
+                                            tableView.selectionModel.select(selectedRow + 1, selectedCol)
+                                        }
                                     }
                                 })
 
@@ -308,155 +290,7 @@ class ParentView : View(){
             vgrow = Priority.ALWAYS
             //enableWhen { controller.fileOpened }
 
-            tab("Редактор"){
-
-                vgrow = Priority.ALWAYS
-                isClosable = false
-                tableView = tableview(controller.getData()) {
-                    fixedCellSize = 22.0
-
-                    fun <T> columnOnEdit(editEvent: TableColumn.CellEditEvent<Area, T>, idx: Int, condition: () -> Boolean){
-                        if(condition()){
-                            error("Невалидное значение")
-                            editModel.rollbackSelected()
-                            return
-                        }
-                        val property = editEvent.tableColumn.getCellObservableValue(editEvent.rowValue) as Property<T?>
-                        if (idx == 6){
-                            var res = editEvent.newValue as String
-                            if((editEvent.newValue as String).length < 4) while (res.length < 4) res = "0$res"
-                            property.value = res as T
-                        } else property.value = editEvent.newValue
-                        selectionModel.focus(selectedRow)
-                        selectionModel.select(selectedRow, tableView!!.columns[idx])
-
-                    }
-
-                    style(true) {
-                        borderColor += box(Color.GRAY)
-                    }
-                    isEditable = true
-                    readonlyColumn("Кв", Area::numberKv)
-                     column("Выд", Area::number).apply {
-                         makeEditable(object: StringConverter<Int>(){
-                             override fun toString(`object`: Int?): String {
-                                 return `object`.toString()
-                             }
-
-                             override fun fromString(string: String?): Int {
-                                 var v = 0
-                                 try{
-                                     v = string?.toInt() ?: v
-                                     if(controller.tableData.any { it.numberKv == selected!!.numberKv && it.number == v }) throw IllegalStateException()
-                                     return v
-                                 }catch (e: IllegalStateException){
-                                     error("Ошибка", "Выдел $v уже есть в базе")
-                                 }catch (e: Exception){
-                                    error("Ошибка", "Не удалось преобразовать в число")
-                                 }
-                                 return 0
-                             }
-
-                         })
-
-                        /* setOnEditStart {
-                             println(it.newValue ?: "null")
-                             setOnKeyPressed {event ->
-                                 if (event.code == KeyCode.DOWN){
-                                     println("down")
-                                     val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<Int?>
-                                     tableViewEditModel.commit(controller.tableData[selectedRow])
-                                     property.value = it.newValue
-                                     tableView.selectionModel.focus(selectedRow + 1)
-                                     tableView.selectionModel.select(selectedRow + 1, tableView.selectedColumn)
-                                 }
-                             }
-                         }*/
-
-                         setOnEditCommit {
-                             println(it.newValue ?: "null")
-                         }
-
-                         setOnEditCommit { columnOnEdit(it, 1){ it.newValue > 999 || it.newValue < 0}
-                             //selectionModel.select(selectedRow, tableView!!.columns[2])
-                             //tableView.edit(selectedRow, tableView.columns[2]) //todo
-                         }
-                         //setOnEditCancel { columnOnEdit(it, 1){it.newValue > 999 || it.newValue < 0} }
-                     }
-
-
-                    column("Площадь", Area::area).apply {
-                        makeEditable(object: StringConverter<Double>() {
-                            override fun toString(`object`: Double?): String {
-                                return `object`.toString()
-                            }
-
-                            override fun fromString(string: String?): Double {
-                                var d = 0.0
-                                try{
-                                    if(string == null) return d
-                                    val string2 = string.replace(",", ".")
-                                    d = string2.toDouble()
-                                    if(string2.contains(".") && string2.length - string2.indexOfLast { it == '.' } > 2) throw Exception()
-                                    return d
-                                }catch (e: NumberFormatException){
-                                    error("Ошибка", "Не удалось преобразовать в число")
-                                }catch (e: Exception){
-                                    error("Ошибка", "Введите десятичное число с одним знаком после запятой")
-                                }
-                                return 0.0
-                            }
-                        })
-                        setOnEditCommit { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
-                        //setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
-
-                    }
-                    column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
-                    readonlyColumn("К. земель", Area::categoryArea).cellFormat {
-                        text = it
-                        style{
-                            if(it == "1108" || it == "1201") backgroundColor += c("#036907", 0.3)
-                        }
-                    }
-                    column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
-                    column("lesb", Area::lesb).apply {
-                        makeEditable()
-                        setOnEditCommit {
-                            var notValid = false
-                            try{
-                                val intv = it.newValue.toInt()
-                                notValid = intv > 9999 || intv < 0
-                            }catch (e: NumberFormatException){
-                                notValid = true
-                            }
-                            columnOnEdit(it, 6){notValid || it.newValue.length > 4}
-                        }
-                       // setOnEditCancel { columnOnEdit(it, 6){it.newValue.length > 4} }
-                    }
-
-                    selectionModel.selectedItemProperty().onChange {
-
-                        selected = this.selectedItem
-                        selectedRow = this.selectedCell?.row ?: selectedRow
-                        selectedCol = this.selectedColumn
-                        if (selectedCol == tableView!!.columns[3]) tableView!!.edit(selectedRow, selectedCol)
-                    }
-
-
-
-
-
-
-                    enableCellEditing() //enables easier cell navigation/editing
-                        //enableDirtyTracking() //flags cells that are dirty
-
-                    tableViewEditModel = editModel
-
-
-
-
-                }
-            }
+            tab("Редактор"){EditorInitFunction(this)}
 
             tab("Пакетное обновление"){
                 var par1Key: ComboBox<String>? = null
@@ -473,9 +307,9 @@ class ParentView : View(){
                         comboBox.valueProperty().onChange {
                             var newNode : Node? = null
                             when(it){
-                                dataTypes.KV, dataTypes.CATEGORY_AREA, dataTypes.LESB -> newNode = TextField()
-                                dataTypes.CATEGORY_PROTECTION ->  newNode = ComboBox(dataTypes.categoryProtection.values.toList().plus(dataTypes.EMPTY_CATEGORY_PROTECTION).toObservable()).apply { selectionModel.select(0) }
-                                dataTypes.OZU -> newNode = ComboBox(dataTypes.ozu.values.toList().toObservable()).apply { selectionModel.select(0) }
+                                DataTypes.KV, DataTypes.CATEGORY_AREA, DataTypes.LESB -> newNode = TextField()
+                                DataTypes.CATEGORY_PROTECTION ->  newNode = ComboBox(DataTypes.categoryProtection.values.toList().plus(DataTypes.EMPTY_CATEGORY_PROTECTION).toObservable()).apply { selectionModel.select(0) }
+                                DataTypes.OZU -> newNode = ComboBox(DataTypes.ozu.values.toList().toObservable()).apply { selectionModel.select(0) }
                                 else -> newNode = TextField().apply{this.isDisable = true}
                             }
                             when(fieldNumber){
@@ -497,7 +331,7 @@ class ParentView : View(){
                     }
 
                     padding = margins
-                    val filterParameters = dataTypes.filterParameters
+                    val filterParameters = DataTypes.filterParameters
                     hbox {
                         vboxConstraints { margin = margins }
                         label("Отобрать значения:")
@@ -534,7 +368,7 @@ class ParentView : View(){
                     hbox {
                         vboxConstraints { margin = margins }
 
-                        parRes = combobox(values = dataTypes.executeParameters) {  }
+                        parRes = combobox(values = DataTypes.executeParameters) {  }
                         initComboBoxChangeListener(parRes!!, 3)
                         label("="){
                             hboxConstraints {
@@ -602,15 +436,6 @@ class ParentView : View(){
                 textFill = Color.RED
                 fontSize = Dimension(11.0, Dimension.LinearUnits.pt)
             }
-            /*val fade = FadeTransition()
-            fade.onFinished = EventHandler { this.text = "" }
-            fade.node = this
-            fade.fromValue = 1.0
-            fade.toValue = 0.0
-            fade.isAutoReverse = true
-            fade.cycleCount = 1
-            fade.duration = javafx.util.Duration(2500.0)*/
-
 
             vboxConstraints {
                 margin = Insets(5.0)
@@ -637,48 +462,5 @@ class ParentView : View(){
     }
 
 
-
-
-
-
-
-}
-
-class Preferences : Fragment("Настройки"){
-    private val controller: GenController by inject()
-
-    override val root = pane {
-        val m10 = Insets(10.0)
-        padding = m10
-        vbox {
-            padding = Insets(20.0)
-            checkbox("Проверять на пропуски выделов при сохранении", AppPreferences.checkSkippedProperty ){
-                vboxConstraints { margin = m10 }
-            }
-            checkbox("Делать резервную копию при сохранении", AppPreferences.saveBackupsProperty){
-                vboxConstraints { margin = m10 }
-            }
-            checkbox("Проверять изменение площадей", AppPreferences.checkAreasProperty) {
-                vboxConstraints { margin = m10 }
-                if (controller.tableData.isEmpty()) return@checkbox
-                AppPreferences.checkAreasProperty.onChange {
-                    if (it) alert(
-                    Alert.AlertType.CONFIRMATION,
-                    "Подтверждение",
-                    "Посчитать текущие площади как начальные?",
-                    ButtonType.YES,
-                    ButtonType.NO,
-                    owner = primaryStage,
-                    title = "?"
-                    ){ btnType ->
-                    if (btnType == ButtonType.YES){
-                        controller.sumAreasForKv = controller.calculateAreasForKv()
-                    } else if(btnType == ButtonType.NO) close()
-
-                } }
-            }
-        }
-
-    }
 }
 
