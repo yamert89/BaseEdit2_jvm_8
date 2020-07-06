@@ -24,6 +24,7 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
    private fun Tab.initial(): Tab.() -> Unit {
         return {
             //this.vgrow = Priority.ALWAYS
+            println("initial func")
             isClosable = false
             controller.tableView = tableview(controller.getData()) {
                 fixedCellSize = 22.0
