@@ -9,7 +9,6 @@ class FileExecutor {
     private var globalOffset = 0L
     private val byteList = ArrayList<Byte>()
     private var counter = 0L
-    private val dataTypes = DataTypes() //todo replace
 
 
     fun parseFile(file: File): List<Area>{
@@ -27,8 +26,8 @@ class FileExecutor {
             val rawData = readRawData()
             list.add(
                 Area(number, kvNumber, area, catArea,
-                    dataTypes.categoryProtection[catProt] ?: catProt,
-                    dataTypes.ozu[oz] ?: oz,
+                    DataTypes.categoryProtection[catProt] ?: catProt,
+                    DataTypes.ozu[oz] ?: oz,
                     lesb, rawData
                 )
             )
@@ -104,7 +103,7 @@ class FileExecutor {
         val out = ByteArrayOutputStream()
         areas.forEach {
             with(out){
-                val catpMap = dataTypes.categoryProtection.filterValues { v -> v == it.categoryProtection }
+                val catpMap = DataTypes.categoryProtection.filterValues { v -> v == it.categoryProtection }
                 val catProt = if(catpMap.size > 0) catpMap.iterator().next().key else it.categoryProtection
                 write(catProt.toByteArray(charset))
                 write(it.numberKv.addZeroes(4))
@@ -116,7 +115,7 @@ class FileExecutor {
                 write(area.addZeroes(5))
                 write(it.categoryArea.toByteArray(charset))
                 write(it.rawData.data3)
-                val ozMap = dataTypes.ozu.filterValues { v -> v == it.ozu }
+                val ozMap = DataTypes.ozu.filterValues { v -> v == it.ozu }
                 val oz = if(ozMap.size > 0) ozMap.iterator().next().key else it.ozu
                 write(oz.toByteArray(charset))
                 if (it.rawData.data4 != null) {

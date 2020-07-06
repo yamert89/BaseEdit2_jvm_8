@@ -1,11 +1,9 @@
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableBooleanValue
 import javafx.collections.ObservableList
-import javafx.scene.control.Alert
-import tornadofx.Controller
-import tornadofx.alert
-import tornadofx.asObservable
-import tornadofx.confirm
+import javafx.scene.control.*
+import javafx.scene.layout.Priority
+import tornadofx.*
 import java.io.File
 import java.lang.Exception
 import java.lang.IllegalArgumentException
@@ -14,6 +12,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.error
 import kotlin.math.abs
 
 class GenController: Controller() {
@@ -21,10 +20,20 @@ class GenController: Controller() {
     val deletedRows = ArrayDeque<Pair<Int, Area>>()
     var sumAreasForKv :  Map<Int, Double>? = null
     private var filePath = ""
-    private val dataTypes = DataTypes()
     var fileOpened = SimpleBooleanProperty(false)
+    var selected: Area? = null
+    var selectedRow: Int = 0
+    var selectedCol: TableColumn<Area, *>? = null
+    lateinit var tableView: TableView<Area>
+    var addButton = Button()
+    var delButton = addButton
+    var saveButton = addButton
+    var menuBar: MenuBar? = null
+    var progress = ProgressBar().apply {
+        vgrow = Priority.ALWAYS
+    }
 
-
+    fun addArea(item: Area) = tableData.add(selectedRow, item)
 
     fun getData(): ObservableList<Area> {
         return tableData
@@ -53,23 +62,23 @@ class GenController: Controller() {
         println("Записей было ${tableData.size}")
 
         val filteredData = tableData.filter {
-            (if(param1.first != dataTypes.EMPTY && param1.first != null) {
+            (if(param1.first != DataTypes.EMPTY && param1.first != null) {
                 when(param1.first){
-                    dataTypes.KV -> it.numberKv == param1.second.toInt()
-                    dataTypes.CATEGORY_AREA -> it.categoryArea == param1.second
-                    dataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param1.second
-                    dataTypes.OZU -> it.ozu == param1.second
-                    dataTypes.LESB -> it.lesb == param1.second
+                    DataTypes.KV -> it.numberKv == param1.second.toInt()
+                    DataTypes.CATEGORY_AREA -> it.categoryArea == param1.second
+                    DataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param1.second
+                    DataTypes.OZU -> it.ozu == param1.second
+                    DataTypes.LESB -> it.lesb == param1.second
                     else -> throw IllegalArgumentException("invalid param")
                 }
             } else true) &&
                     (if(param2.first != "" && param2.first != null) {
                         when(param2.first){
-                            dataTypes.KV -> it.numberKv == param2.second.toInt()
-                            dataTypes.CATEGORY_AREA -> it.categoryArea == param2.second
-                            dataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param2.second
-                            dataTypes.OZU -> it.ozu == param2.second
-                            dataTypes.LESB -> it.lesb == param2.second
+                            DataTypes.KV -> it.numberKv == param2.second.toInt()
+                            DataTypes.CATEGORY_AREA -> it.categoryArea == param2.second
+                            DataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param2.second
+                            DataTypes.OZU -> it.ozu == param2.second
+                            DataTypes.LESB -> it.lesb == param2.second
                             else -> throw IllegalArgumentException("invalid param")
                         }
                     } else true)
@@ -86,24 +95,24 @@ class GenController: Controller() {
         try {
             tempList.forEach {
                 when(resParam.first){
-                    dataTypes.CATEGORY_AREA -> {
+                    DataTypes.CATEGORY_AREA -> {
                         val intView = resParam.second.toInt()
                         if(resParam.second.length != 4 || (intView < 1101 || intView > 2556)) return arrayOf(-1)
                         it.value.categoryArea = resParam.second
                     }
-                    dataTypes.CATEGORY_PROTECTION -> {
-                        val contKey = dataTypes.categoryProtection.containsKey(resParam.second)
-                        val contValue = dataTypes.categoryProtection.containsValue(resParam.second)
+                    DataTypes.CATEGORY_PROTECTION -> {
+                        val contKey = DataTypes.categoryProtection.containsKey(resParam.second)
+                        val contValue = DataTypes.categoryProtection.containsValue(resParam.second)
                         if(!contKey && !contValue) return arrayOf(-1)
-                        it.value.categoryProtection = if(contKey) dataTypes.categoryProtection[resParam.second] else resParam.second
+                        it.value.categoryProtection = if(contKey) DataTypes.categoryProtection[resParam.second] else resParam.second
                     }
-                    dataTypes.OZU -> {
-                        val conKey = dataTypes.ozu.containsKey(resParam.second)
-                        val contValue = dataTypes.ozu.containsValue(resParam.second)
+                    DataTypes.OZU -> {
+                        val conKey = DataTypes.ozu.containsKey(resParam.second)
+                        val contValue = DataTypes.ozu.containsValue(resParam.second)
                         if(!conKey && !contValue) return arrayOf(-1)
-                        it.value.ozu = if (conKey) dataTypes.ozu[resParam.second] else resParam.second
+                        it.value.ozu = if (conKey) DataTypes.ozu[resParam.second] else resParam.second
                     }
-                    dataTypes.LESB -> {
+                    DataTypes.LESB -> {
                         if (resParam.second.length != 4) return arrayOf(-1)
                         it.value.lesb = resParam.second
                     }
@@ -226,7 +235,23 @@ class GenController: Controller() {
         return map
     }
 
-
+    fun openFile(file: File){
+        tableData.clear()
+        var res = false
+        menuBar!!.runAsyncWithProgress(progress = progress) {
+            try {
+                initData(file)
+                res = true
+                AppPreferences.recentPath = file.absolutePath
+            }catch (e: Exception){
+                return@runAsyncWithProgress
+            }
+            println("end init")
+        } ui {
+            addButton.disableProperty().set(false)
+            delButton.disableProperty().set(false)
+            saveButton.disableProperty().set(false)
+            if(!res) error("Ошибка", "Ошибка чтения файла")
+        }
+    }
 }
-
-
