@@ -13,6 +13,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.util.Duration
 import tornadofx.*
+import views.ButtonsPaneInitFunction
 import views.EditorInitFunction
 import views.MenuBarInitFunction
 import views.PackageUpdateInitFunction
@@ -57,9 +58,7 @@ class ParentView : View(){
         controller.menuBar = menubar { MenuBarInitFunction(this, primaryStage).getInitial().invoke(this) }
 
         hbox {
-            button {
-                shortcut(KeyCodeCombination(KeyCode.K))
-            }
+            ButtonsPaneInitFunction(this, this@ParentView).getInitial().invoke(this)
         }
 
         tabpane {
