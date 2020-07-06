@@ -28,28 +28,6 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
             isClosable = false
             controller.tableView = tableview(controller.getData()) {
                 fixedCellSize = 22.0
-
-                fun <T> columnOnEdit(
-                    editEvent: TableColumn.CellEditEvent<Area, T>,
-                    idx: Int,
-                    condition: () -> Boolean
-                ) {
-                    if (condition()) {
-                        tornadofx.error("Невалидное значение")
-                        editModel.rollbackSelected()
-                        return
-                    }
-                    val property = editEvent.tableColumn.getCellObservableValue(editEvent.rowValue) as Property<T?>
-                    if (idx == 6) {
-                        var res = editEvent.newValue as String
-                        if ((editEvent.newValue as String).length < 4) while (res.length < 4) res = "0$res"
-                        property.value = res as T
-                    } else property.value = editEvent.newValue
-                    selectionModel.focus(controller.selectedRow)
-                    selectionModel.select(controller.selectedRow, controller.tableView.columns[idx])
-
-                }
-
                 style(true) {
                     borderColor += box(Color.GRAY)
                 }
@@ -130,5 +108,21 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                 tableViewEditModel = editModel
             }
         }
+    }
+    private fun <T> TableView<Area>.columnOnEdit(editEvent: TableColumn.CellEditEvent<Area, T>, idx: Int,condition: () -> Boolean) {
+        if (condition()) {
+            tornadofx.error("Невалидное значение")
+            editModel.rollbackSelected()
+            return
+        }
+        val property = editEvent.tableColumn.getCellObservableValue(editEvent.rowValue) as Property<T?>
+        if (idx == 6) {
+            var res = editEvent.newValue as String
+            if ((editEvent.newValue as String).length < 4) while (res.length < 4) res = "0$res"
+            property.value = res as T
+        } else property.value = editEvent.newValue
+        selectionModel.focus(controller.selectedRow)
+        selectionModel.select(controller.selectedRow, controller.tableView.columns[idx])
+
     }
 }

@@ -35,8 +35,6 @@ class GenController: Controller() {
 
     fun addArea(item: Area) = tableData.add(selectedRow, item)
 
-
-
     fun getData(): ObservableList<Area> {
         return tableData
     }
@@ -256,8 +254,4 @@ class GenController: Controller() {
             if(!res) error("Ошибка", "Ошибка чтения файла")
         }
     }
-
-
 }
-
-

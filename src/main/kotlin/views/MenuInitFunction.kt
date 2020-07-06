@@ -89,7 +89,7 @@ class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage
                 item("О программе"){
                     action {
                         information(
-                            "BaseEdit2 (SKL редактор)  v.1.4.2",
+                            "BaseEdit2 (SKL редактор)  v.1.4.3",
                             "Порохин Александр\n\nРОСЛЕСИНФОРГ 2020",
                             owner = primaryStage
                         )
