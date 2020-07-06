@@ -1,13 +1,9 @@
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableBooleanValue
 import javafx.collections.ObservableList
-import javafx.scene.control.Alert
-import javafx.scene.control.TableColumn
-import javafx.scene.control.TableView
-import tornadofx.Controller
-import tornadofx.alert
-import tornadofx.asObservable
-import tornadofx.confirm
+import javafx.scene.control.*
+import javafx.scene.layout.Priority
+import tornadofx.*
 import java.io.File
 import java.lang.Exception
 import java.lang.IllegalArgumentException
@@ -16,6 +12,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.error
 import kotlin.math.abs
 
 class GenController: Controller() {
@@ -28,6 +25,13 @@ class GenController: Controller() {
     var selectedRow: Int = 0
     var selectedCol: TableColumn<Area, *>? = null
     lateinit var tableView: TableView<Area>
+    var addButton = Button()
+    var delButton = addButton
+    var saveButton = addButton
+    var menuBar: MenuBar? = null
+    var progress = ProgressBar().apply {
+        vgrow = Priority.ALWAYS
+    }
 
     fun addArea(item: Area) = tableData.add(selectedRow, item)
 
@@ -231,6 +235,26 @@ class GenController: Controller() {
             map[it.numberKv] = map[it.numberKv]!! + it.area
         }
         return map
+    }
+
+    fun openFile(file: File){
+        tableData.clear()
+        var res = false
+        menuBar!!.runAsyncWithProgress(progress = progress) {
+            try {
+                initData(file)
+                res = true
+                AppPreferences.recentPath = file.absolutePath
+            }catch (e: Exception){
+                return@runAsyncWithProgress
+            }
+            println("end init")
+        } ui {
+            addButton.disableProperty().set(false)
+            delButton.disableProperty().set(false)
+            saveButton.disableProperty().set(false)
+            if(!res) error("Ошибка", "Ошибка чтения файла")
+        }
     }
 
 

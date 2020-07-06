@@ -14,6 +14,7 @@ import javafx.scene.paint.Color
 import javafx.util.Duration
 import tornadofx.*
 import views.EditorInitFunction
+import views.MenuBarInitFunction
 import views.PackageUpdateInitFunction
 import java.io.File
 import java.lang.NumberFormatException
@@ -35,15 +36,10 @@ class ParentView : View(){
     private val model: AreaModel by inject()
     private var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
     private var status = Label()
-    private var addButton = Button()
-    private var delButton = addButton
-    private var saveButton = addButton
-    private var menuBar: MenuBar? = null
 
-    private var progress = ProgressBar().apply {
-        vgrow = Priority.ALWAYS
 
-    }
+
+
     init {
         title = "BaseEdit2"
         primaryStage.setOnCloseRequest {
@@ -79,210 +75,105 @@ class ParentView : View(){
 
     override val root = vbox {
         try {
+            controller.menuBar = menubar { MenuBarInitFunction(this, primaryStage).getInitial().invoke(this) }
 
-            fun openFile(file: File){
-                controller.tableData.clear()
-                var res = false
-                menuBar!!.runAsyncWithProgress(progress = progress) {
-                    try {
-                        controller.initData(file)
-                        res = true
-                        AppPreferences.recentPath = file.absolutePath
-                    }catch (e: Exception){
-                        return@runAsyncWithProgress
+            hbox {
+                padding = Insets(3.0)
+
+                val buttonFontSize = Dimension(7.0, Dimension.LinearUnits.pt)
+
+                controller.saveButton = button{
+                    disableProperty().set(true)
+                    hboxConstraints { marginLeftRight(10.0) }
+                    style {
+                        fontSize = buttonFontSize
+                        prefWidth = Dimension(25.0, Dimension.LinearUnits.px)
+                        padding = box(Dimension(1.0, Dimension.LinearUnits.px))
+
                     }
-                    println("end init")
-                } ui {
-                    addButton.disableProperty().set(false)
-                    delButton.disableProperty().set(false)
-                    saveButton.disableProperty().set(false)
-                    if(!res) error("Ошибка", "Ошибка чтения файла")
+                    graphic = resources.imageview("/Export To Document.png").apply {
+                        fitHeight = 20.0
+                        fitWidth = 20.0
+                    }
+                    action {
+                        if (controller.tableData.isEmpty() || !controller.preSaveCheck()) return@action
+                        runAsyncWithProgress {
+                            controller.save(null)
+                        }ui{status.text = "Сохранено"}
+                    }
+                    tooltip("Сохранить"){style{fontSize = buttonFontSize + 2}}
                 }
-            }
 
-            menuBar = menubar {
-                padding = Insets(0.0)
-                menu("Файл"){
-                    item("Открыть"){
-                        action {
-                            val files = chooseFile(
-                                "Выберите файл",
-                                owner = primaryStage,
-                                mode = FileChooserMode.Single,
-                                filters = arrayOf()
-                            )
+                controller.addButton = button(/*"Добавить"*/) {
+                    hboxConstraints {
+                        marginLeftRight(6.0)
+                    }
+                    tooltip("Добавить выдел ( Num + )"){style{fontSize = buttonFontSize + 2}}
 
-                            if (files.isEmpty()) return@action
-                            openFile(files[0])
-                        }
-                    }
-                    val recentPath = Paths.get(AppPreferences.recentPath)
-
-                    if (recentPath.toString().isNotEmpty() && recentPath.toFile().exists()) item("Открыть последний: <${recentPath.fileName}>"){
-                        action {
-                            openFile(recentPath.toFile())
-                        }
-                    }
-                    item("Сохранить"){
-                        action {
-                            if (controller.tableData.isEmpty() || !controller.preSaveCheck()) return@action
-                            runAsyncWithProgress {
-                                controller.save(null)
-                            }ui {status.text = "Сохранено"}
-                        }
-                    }
-                    item("Сохранить как .."){
-                        action {
-                            if (!controller.preSaveCheck()) return@action
-                            val list = chooseFile(
-                                "Выберите файл",
-                                mode = FileChooserMode.Save,
-                                filters = arrayOf(),
-                                owner = primaryStage
-                            )
-                            val path = list[0].absolutePath
-                            runAsyncWithProgress {
-                                controller.save(path)
-                            }ui {status.text = "Сохранено"}
-                        }
+                    style {
+                        fontSize = buttonFontSize
+                        prefWidth = Dimension(25.0, Dimension.LinearUnits.px)
+                        padding = box(Dimension(1.0, Dimension.LinearUnits.px))
 
                     }
+
+                    disableProperty().set(true)
+
+                    val imageView = resources.imageview("/Add Green Button.png")
+                    imageView.fitHeight = 20.0
+                    imageView.fitWidth = 20.0
+                    graphic = imageView
+
+                    action {
+                        if (controller.selected == null) {
+                            println("selected is null")
+                            return@action
+                        }
+                        var item = controller.selected!!
+                        item = Area(0, item.numberKv, 0.0, item.categoryArea, DataTypes.EMPTY_CATEGORY_PROTECTION, item.ozu, item.lesb, item.rawData)
+
+                        controller.addArea(item)
+
+                        controller.tableView.selectionModel!!.select(controller.selectedRow, controller.tableView.columns[1])
+
+                    }
+
+                    shortcut(KeyCodeCombination(KeyCode.ADD))
+
                 }
-                menu("Правка"){
-                    item("Восстановить удалённый выдел"){
-                        action{
-                            if(controller.deletedRows.isEmpty()) {
-                                status.text = "Нет удалённых выделов"
-                                return@action
-                            }
-                            val pairOfArea = controller.deletedRows.pollLast() as Pair<Int, Area>
-                            controller.tableData[pairOfArea.first] = pairOfArea.second
-                            status.text = "Выдел ${pairOfArea.second.number} квартала ${pairOfArea.second.numberKv} восстановлен"
-                        }
-                    }
-                }
-                menu("?"){
-                    item("Настройки"){
-                        action {
-                            find(Preferences::class).openModal()
-                        }
-                    }
-                    item("О программе"){
-                        action {
-                            information(
-                                "BaseEdit2 (SKL редактор)  v.1.4.2",
-                                "Порохин Александр\n\nРОСЛЕСИНФОРГ 2020",
-                                owner = primaryStage
-                            )
-                        }
-                    }
-                }
-            }
-
-
-
-                hbox {
-
-                    padding = Insets(3.0)
-
-                    val buttonFontSize = Dimension(7.0, Dimension.LinearUnits.pt)
-
-                    saveButton = button{
-                        disableProperty().set(true)
-                        hboxConstraints { marginLeftRight(10.0) }
-                        style {
-                            fontSize = buttonFontSize
-                            prefWidth = Dimension(25.0, Dimension.LinearUnits.px)
-                            padding = box(Dimension(1.0, Dimension.LinearUnits.px))
-
-                        }
-                        graphic = resources.imageview("/Export To Document.png").apply {
-                            fitHeight = 20.0
-                            fitWidth = 20.0
-                        }
-                        action {
-                            if (controller.tableData.isEmpty() || !controller.preSaveCheck()) return@action
-                            runAsyncWithProgress {
-                                controller.save(null)
-                            }ui{status.text = "Сохранено"}
-                        }
-                        tooltip("Сохранить"){style{fontSize = buttonFontSize + 2}}
-                    }
-
-                    addButton = button(/*"Добавить"*/) {
-                        hboxConstraints {
-                            marginLeftRight(6.0)
-                        }
-                        tooltip("Добавить выдел ( Num + )"){style{fontSize = buttonFontSize + 2}}
-
-                        style {
-                            fontSize = buttonFontSize
-                            prefWidth = Dimension(25.0, Dimension.LinearUnits.px)
-                            padding = box(Dimension(1.0, Dimension.LinearUnits.px))
-
-                        }
-
-                        disableProperty().set(true)
-
-                        val imageView = resources.imageview("/Add Green Button.png")
-                        imageView.fitHeight = 20.0
-                        imageView.fitWidth = 20.0
-                        graphic = imageView
-
-                        action {
-                            if (controller.selected == null) {
-                                println("selected is null")
-                                return@action
-                            }
-                            var item = controller.selected!!
-                            item = Area(0, item.numberKv, 0.0, item.categoryArea, DataTypes.EMPTY_CATEGORY_PROTECTION, item.ozu, item.lesb, item.rawData)
-
-                            controller.addArea(item)
-
-                            controller.tableView.selectionModel!!.select(controller.selectedRow, controller.tableView.columns[1])
-
-                        }
-
-                        shortcut(KeyCodeCombination(KeyCode.ADD))
+                controller.delButton = button(/*"Удалить"*/) {
+                    disableProperty().set(true)
+                    style {
+                        fontSize = buttonFontSize
+                        prefWidth = Dimension(25.0, Dimension.LinearUnits.px)
+                        padding = box(Dimension(1.0, Dimension.LinearUnits.px))
 
                     }
-                    delButton = button(/*"Удалить"*/) {
-                        disableProperty().set(true)
-                        style {
-                            fontSize = buttonFontSize
-                            prefWidth = Dimension(25.0, Dimension.LinearUnits.px)
-                            padding = box(Dimension(1.0, Dimension.LinearUnits.px))
-
-                        }
-                        graphic = resources.imageview("/Minus Green Button.png").apply {
-                            fitHeight = 20.0
-                            fitWidth = 20.0
-                        }
-                        action {
-                            alert(
-                                Alert.AlertType.CONFIRMATION,
-                                "Удалить?",
-                                owner = primaryStage,
-                                actionFn = { buttonType ->
-                                    if (buttonType == ButtonType.OK) {
-                                        with(controller){
-                                           deletedRows.add(selectedRow to tableData[selectedRow])
-                                           tableData.removeAt(selectedRow)
-                                            tableView.selectionModel.select(selectedRow + 1, selectedCol)
-                                        }
+                    graphic = resources.imageview("/Minus Green Button.png").apply {
+                        fitHeight = 20.0
+                        fitWidth = 20.0
+                    }
+                    action {
+                        alert(
+                            Alert.AlertType.CONFIRMATION,
+                            "Удалить?",
+                            owner = primaryStage,
+                            actionFn = { buttonType ->
+                                if (buttonType == ButtonType.OK) {
+                                    with(controller){
+                                       deletedRows.add(selectedRow to tableData[selectedRow])
+                                       tableData.removeAt(selectedRow)
+                                        tableView.selectionModel.select(selectedRow + 1, selectedCol)
                                     }
-                                })
+                                }
+                            })
 
-                        }
-                        tooltip("Удалить выдел ( Num - )"){style{fontSize = buttonFontSize + 2}}
-                        shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
                     }
-
-
-
+                    tooltip("Удалить выдел ( Num - )"){style{fontSize = buttonFontSize + 2}}
+                    shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
                 }
 
-
+            }
 
         }catch (e: Exception){
             e.printStackTrace()
