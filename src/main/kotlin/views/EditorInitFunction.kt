@@ -32,10 +32,10 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                     borderColor += box(Color.GRAY)
                 }
                 isEditable = true
-                readonlyColumn("Кв", Area::numberKv).apply { isSortable = false }
+                readonlyColumn("Кв", Area::numberKv).apply { isSortable = AppPreferences.sorting }
                 column("Выд", Area::number).apply {
                     makeEditable(NumberConverter())
-                    isSortable = false
+                    isSortable = AppPreferences.sorting
 
                     /* setOnEditStart {
                      println(it.newValue ?: "null")
@@ -67,14 +67,14 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                 column("Площадь", Area::area).apply {
                     makeEditable(AreaConverter())
                     setOnEditCommit { columnOnEdit(it, 2) { it.newValue > 9999 || it.newValue < 0 } }
-                    isSortable = false
+                    isSortable = AppPreferences.sorting
                     //setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
 
                 }
                 column("К. защитности", Area::categoryProtection).makeEditable()
-                    .useComboBox(DataTypes.categoryProtection.values.toList().asObservable()).apply { isSortable = false }
+                    .useComboBox(DataTypes.categoryProtection.values.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
 
-                val kz = readonlyColumn("К. земель", Area::categoryArea).apply { isSortable = false }
+                val kz = readonlyColumn("К. земель", Area::categoryArea).apply { isSortable = AppPreferences.sorting }
                     kz.cellFormat {
                         text = it
                         style {
@@ -82,10 +82,10 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                         }
                     }
 
-                column("ОЗУ", Area::ozu).makeEditable().useComboBox(DataTypes.ozu.values.toList().asObservable()).apply { isSortable = false }
+                column("ОЗУ", Area::ozu).makeEditable().useComboBox(DataTypes.ozu.values.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
                 column("lesb", Area::lesb).apply {
                     makeEditable()
-                    isSortable = false
+                    isSortable = AppPreferences.sorting
                     setOnEditCommit {
                         var notValid = false
                         try {

@@ -1,3 +1,7 @@
+package views
+
+import AppPreferences
+import GenController
 import javafx.geometry.Insets
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonType
@@ -37,6 +41,13 @@ class Preferences : Fragment("Настройки"){
                         } else if (btnType == ButtonType.NO) close()
 
                     }
+                }
+            }
+            checkbox("Возможность сортировки столбцов", AppPreferences.sortingProperty){
+                vboxConstraints { margin = m10 }
+                action {
+                    if (this.isSelected) controller.tableView.columns.forEach { it.isSortable = true }
+                    else controller.tableView.columns.forEach { it.isSortable = false }
                 }
             }
         }

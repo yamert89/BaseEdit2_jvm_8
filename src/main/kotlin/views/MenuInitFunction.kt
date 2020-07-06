@@ -3,13 +3,10 @@ package views
 import Area
 import GenController
 import Notification
-import Preferences
 import javafx.geometry.Insets
-import javafx.scene.control.Menu
 import javafx.scene.control.MenuBar
 import javafx.stage.Stage
 import tornadofx.*
-import java.io.File
 import java.nio.file.Paths
 
 class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage: Stage): InitFunction<MenuBar> {

@@ -23,6 +23,9 @@ object AppPreferences {
     val checkAreasProperty = MyBooleanProperty()
     var checkAreas by checkAreasProperty
 
+    val sortingProperty = MyBooleanProperty()
+    var sorting by sortingProperty
+
     var recentPath = ""
 
 
@@ -33,10 +36,11 @@ object AppPreferences {
         if (file.exists()) {
             with(properties){
                 load(FileReader(file))
-                checkSkipped = getProperty("chSkipped") == "1"
-                saveBackups = getProperty("saveBack") == "1"
-                checkAreas = getProperty("checkAreas") == "1"
-                recentPath = getProperty("recentPath") ?: ""
+                checkSkipped = getProperty(PROPERTY_CHECK_SKIPPED) == "1"
+                saveBackups = getProperty(PROPERTY_SAVE_BACKUP) == "1"
+                checkAreas = getProperty(PROPERTY_CHECK_AREAS) == "1"
+                recentPath = getProperty(PROPERTY_RECENT_PATH) ?: ""
+                sorting = getProperty(PROPERTY_SORTING) == "1"
             }
 
         } else file.createNewFile()
@@ -46,10 +50,11 @@ object AppPreferences {
 
 
     fun savePreferences(){
-        properties["chSkipped"] = if (checkSkipped) "1" else "0"
-        properties["saveBack"] = if (saveBackups) "1" else "0"
-        properties["checkAreas"] = if (checkAreas) "1" else "0"
-        if (recentPath.isNotEmpty()) properties["recentPath"] = recentPath
+        properties[PROPERTY_CHECK_SKIPPED] = if (checkSkipped) "1" else "0"
+        properties[PROPERTY_SAVE_BACKUP] = if (saveBackups) "1" else "0"
+        properties[PROPERTY_CHECK_AREAS] = if (checkAreas) "1" else "0"
+        properties[PROPERTY_SORTING] = if (sorting) "1" else "0"
+        if (recentPath.isNotEmpty()) properties[PROPERTY_RECENT_PATH] = recentPath
         properties.store(FileWriter(file), "")
     }
 }
