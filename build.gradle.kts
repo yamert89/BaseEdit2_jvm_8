@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "BaseEdit2"
-version = "1.4.3"
+version = "1.4.4"
 var buildVersion = 0
 
 

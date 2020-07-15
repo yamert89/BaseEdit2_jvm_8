@@ -144,11 +144,13 @@ class GenController: Controller() {
         val skipped = HashMap<Area, Int>()
         val zeroNumber = mutableListOf<Area>()
         val lkWithZero = mutableListOf<Area>()
+        val zeroAreas = mutableListOf<Area>()
         val map = mutableMapOf<Int, MutableList<Int>>()
         tableData.forEach {
             if (it.categoryProtection == "-") catProt.add(it)
             val intVal = it.categoryArea.toInt()
             if (intVal in 1108..1207 && it.area == 0.0) lkWithZero.add(it)
+            if (it.area == 0.0 && it.categoryProtection != DataTypes.categoryProtection["400000"]) zeroAreas.add(it)
             if(it.number == 0) zeroNumber.add(it)
             if (!map.containsKey(it.numberKv)) map[it.numberKv] = mutableListOf()
             map[it.numberKv]!!.add(it.number)
@@ -194,6 +196,7 @@ class GenController: Controller() {
                 if(diff != 0.0) resMap[it.key] = abs(diff)
             }
             if (resMap.isNotEmpty()) message += "\nНе совпадают площади в " + resMap.entries.joinToString { "кв: ${it.key} на ${DecimalFormat("####.#").format(it.value)}" }
+            if (zeroAreas.isNotEmpty()) message += "\nНулевые площади в ${zeroAreas.joinToString { "\nкв: ${it.numberKv}, выд: ${it.number}" }}"
 
 
         }
