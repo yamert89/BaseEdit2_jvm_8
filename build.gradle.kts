@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "BaseEdit2"
-version = "1.4.4"
+version = "1.4.5"
 var buildVersion = 0
 
 
@@ -51,8 +51,9 @@ tasks {
         val reader = FileReader(file("$projectDir/buildVersion"))
         props.load(reader)
         reader.close()
-        buildVersion = props.getProperty("v").toInt() + 1
+        buildVersion = if(version != props.getProperty("appv")) 0 else props.getProperty("v").toInt() + 1
         props.setProperty("v", buildVersion.toString())
+        props.setProperty("appv", version.toString())
         val writer = FileWriter(file("$projectDir/buildVersion"))
         props.store(writer, "")
         writer.close()

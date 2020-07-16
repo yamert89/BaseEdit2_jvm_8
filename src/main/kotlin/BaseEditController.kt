@@ -193,7 +193,7 @@ class GenController: Controller() {
             val check = calculateAreasForKv()
             check.forEach{
                 val diff = it.value - sumAreasForKv!![it.key]!!
-                if(diff != 0.0) resMap[it.key] = abs(diff)
+                if(diff != 0.0) resMap[it.key] = diff
             }
             if (resMap.isNotEmpty()) message += "\nНе совпадают площади в " + resMap.entries.joinToString { "кв: ${it.key} на ${DecimalFormat("####.#").format(it.value)}" }
             if (zeroAreas.isNotEmpty()) message += "\nНулевые площади в ${zeroAreas.joinToString { "\nкв: ${it.numberKv}, выд: ${it.number}" }}"
