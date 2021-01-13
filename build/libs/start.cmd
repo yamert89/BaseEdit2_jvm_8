@@ -1,1 +1,1 @@
-start /B javaw -jar BaseEdit2-1.4.2.b3.jar
+start /B javaw -jar BaseEdit2-1.4.2.b7.jar

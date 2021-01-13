@@ -4,7 +4,7 @@ import java.util.Properties
 import java.io.*
 plugins {
     java
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm") version "1.4.20"
 }
 
 group = "BaseEdit2"
