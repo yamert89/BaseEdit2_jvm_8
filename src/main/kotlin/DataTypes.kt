@@ -1,4 +1,4 @@
-class DataTypes {
+object DataTypes {
 
     val EMPTY = ""
     val KV = "кв"
