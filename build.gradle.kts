@@ -36,7 +36,7 @@ sourceSets{
 }
 project.configurations.implementation.isCanBeResolved = true
 var archieveName = ""
-val startFolder = file("C:\\Users\\porohin\\Desktop\\BaseEdit2_main_jar\\")
+val startFolder = file("${System.getProperty("pathJars")}BaseEdit2_main_jar\\")
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
