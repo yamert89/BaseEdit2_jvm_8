@@ -24,7 +24,7 @@ java{
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     testCompile("junit", "junit", "4.12")
-    implementation("no.tornado:tornadofx:1.7.19")
+    implementation("no.tornado:tornadofx:1.7.20")
 }
 
 configure<JavaPluginConvention> {
