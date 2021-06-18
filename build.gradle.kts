@@ -1,4 +1,5 @@
 import org.gradle.internal.impldep.com.google.common.io.Files
+import org.jetbrains.kotlin.cli.common.toBooleanLenient
 import kotlin.io.*
 import java.util.Properties
 import java.io.*
@@ -36,7 +37,7 @@ sourceSets{
 }
 project.configurations.implementation.isCanBeResolved = true
 var archieveName = ""
-val startFolder = file("${System.getProperty("pathJars")}BaseEdit2_main_jar\\")
+
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
@@ -60,7 +61,7 @@ tasks {
     }
     jar{
         dependsOn(getByName("changeBuildVersion"))
-        archieveName = "BaseEdit2-${project.version}.b${buildVersion}.jar"
+        archieveName = "BaseEdit2-${project.version}.jar"
         manifest {
             attributes( "Main-Class" to "BaseEdit2AppKt")
         }
@@ -69,15 +70,29 @@ tasks {
         val d = project.dependencies
         from(c)
     }
+    fun String.prop() = System.getProperty(this)
+    val workPlaceConfiguration = "workplaceConfiguration".prop().toBooleanLenient()!!
+    val startPath = if (workPlaceConfiguration) {
+        "pathJarsWorkplace".prop()
+    } else {
+        "pathJarsHome".prop()
+    }
+    val startFolder = file("${startPath}BaseEdit2_main_jar\\")
+    val buildD = "$projectDir/build/libs/"
 
-    register("cleanStartDir"){
+    val cl = register("cleanStartDir"){
         dependsOn(jar)
         startFolder.listFiles()?.filter { it.name.endsWith(".jar") }?.forEach { delete(it.absolutePath) }
     }
+    val copyB = register<Copy>("copyBuild"){
+        dependsOn(cl)
+        from(file("$buildD/start.cmd"))
+        into(startFolder)
+    }
 
     register<Copy>("copy") {
-        dependsOn(getByName("cleanStartDir"))
-        val archieveName = "BaseEdit2-${project.version}.b${buildVersion}.jar"
+        dependsOn(copyB)
+        val archieveName = "BaseEdit2-${project.version}.jar"
         val startF = file("$projectDir/build/libs/start.cmd")
         startF.delete()
         startF.createNewFile()
@@ -85,11 +100,10 @@ tasks {
         writer.write("start /B javaw -jar $archieveName")
         writer.flush()
         writer.close()
-        val buildD = "$projectDir/build/libs/"
+        println("$buildD/$archieveName")
         from(file("$buildD/$archieveName"))
         into(startFolder)
-        from(file("$buildD/start.cmd"))
-        into(startFolder)
+
 
     }
 
