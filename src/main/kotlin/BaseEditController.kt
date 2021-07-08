@@ -1,5 +1,4 @@
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.value.ObservableBooleanValue
 import javafx.collections.ObservableList
 import javafx.scene.control.*
 import javafx.scene.layout.Priority
@@ -12,10 +11,9 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.error
-import kotlin.math.abs
 
 class GenController: Controller() {
+    private val outputSize: Int = 25
     val tableData = emptyList<Area>().toMutableList().asObservable()
     val deletedRows = ArrayDeque<Pair<Int, Area>>()
     var sumAreasForKv :  Map<Int, Double>? = null
@@ -138,20 +136,20 @@ class GenController: Controller() {
 
     fun preSaveCheck(): Boolean{
         //tableViewEditModel.commit()
-        val checkSkipped = AppPreferences.checkSkipped
-        val dublicate = mutableListOf<Area>()
-        val catProt = mutableListOf<Area>()
-        val skipped = HashMap<Area, Int>()
-        val zeroNumber = mutableListOf<Area>()
-        val lkWithZero = mutableListOf<Area>()
-        val zeroAreas = mutableListOf<Area>()
+        var checkSkip = AppPreferences.checkSkipped
+        var checkDublicate = mutableListOf<Area>()
+        var checkCatProt = mutableListOf<Area>()
+        var checkSkipped = HashMap<Area, Int>()
+        var checkZeroNumber = mutableListOf<Area>()
+        var checkLkWithZero = mutableListOf<Area>()
+        var checkZeroAreas = mutableListOf<Area>()
         val map = mutableMapOf<Int, MutableList<Int>>()
         tableData.forEach {
-            if (it.categoryProtection == "-") catProt.add(it)
+            if (it.categoryProtection == "-") checkCatProt.add(it)
             val intVal = it.categoryArea.toInt()
-            if (intVal in 1108..1207 && it.area == 0.0) lkWithZero.add(it)
-            if (it.area == 0.0 && it.categoryProtection != DataTypes.categoryProtection["400000"]) zeroAreas.add(it)
-            if(it.number == 0) zeroNumber.add(it)
+            if (intVal in 1108..1207 && it.area == 0.0) checkLkWithZero.add(it)
+            if (it.area == 0.0 && it.categoryProtection != DataTypes.categoryProtection["400000"]) checkZeroAreas.add(it)
+            if(it.number == 0) checkZeroNumber.add(it)
             if (!map.containsKey(it.numberKv)) map[it.numberKv] = mutableListOf()
             map[it.numberKv]!!.add(it.number)
         }
@@ -162,32 +160,46 @@ class GenController: Controller() {
                 if (distinctly.size != it.value.size) {
                     val full = it.value.sorted()
                     for (i in 0 until distinctly.size){
-                        if (dublicate.any { el -> el.numberKv == it.key }) break
-                        if (full[i] != distinctly[i]) dublicate.add(tableData.first { el -> el.numberKv == it.key && el.number == full[i]})
+                        if (checkDublicate.any { el -> el.numberKv == it.key }) break
+                        if (full[i] != distinctly[i]) checkDublicate.add(tableData.first { el -> el.numberKv == it.key && el.number == full[i]})
                     }
                 }
 
-                if (!checkSkipped) return@forEach
-                if(!skipped.contains(tableData.first { el -> el.numberKv == it.key})){
+                if (!checkSkip) return@forEach
+                if(!checkSkipped.contains(tableData.first { el -> el.numberKv == it.key})){
                     val skippedNumber = it.value.containsSkipped()
-                    if( skippedNumber != 0) skipped[tableData.first { el -> el.numberKv == it.key}] = skippedNumber
+                    if( skippedNumber != 0) checkSkipped[tableData.first { el -> el.numberKv == it.key}] = skippedNumber
                 }
 
             }
         }
+        val sortedCheckSkipped = if (checkSkipped.size <= outputSize) TreeMap<Area, Int>().apply {
+            val it = checkSkipped.iterator()
+            var idx = 0
+            while(it.hasNext() && idx++ < 25) with(it.next()){ put(key, value)}
+        } else TreeMap<Area, Int> { o1, o2 ->
+            when {
+                o1 == null || o2 == null -> throw NullPointerException("Area can not be null")
+                else -> o1.let { it.numberKv * 1000 + it.number }.compareTo(o2.let { it.numberKv * 1000 + it.number })
+            }
+        }.apply {
+            val it = checkSkipped.iterator()
+            var idx = 0
+            while(it.hasNext() && idx++ < 25) with(it.next()){ put(key, value)}
+        }
 
         var message = ""
 
-        if (catProt.size > 0){
-            message += "Категория защитности не проставлена в ${catProt.joinToString(", "){"кв: ${it.numberKv} выд: ${it.number}"}}"
+        if (checkCatProt.size > 0){
+            message += "Категория защитности не проставлена в ${checkCatProt.truncate().joinToString(", "){"кв: ${it.numberKv} выд: ${it.number}"}}"
         }
-        if (zeroNumber.size > 0){
-            message += "\nНомер выдела не проставлен в кв ${zeroNumber.joinToString(", "){ it.numberKv.toString()}}"
+        if (checkZeroNumber.size > 0){
+            message += "\nНомер выдела не проставлен в кв ${checkZeroNumber.truncate().joinToString(", "){ it.numberKv.toString()}}"
         }
-        if (dublicate.size > 0){
-            message += "\nДубликаты в ${dublicate.joinToString { "кв: ${it.numberKv} выд: ${it.number}"}}"
+        if (checkDublicate.size > 0){
+            message += "\nДубликаты в ${checkDublicate.truncate().joinToString { "кв: ${it.numberKv} выд: ${it.number}"}}"
         }
-        if (lkWithZero.isNotEmpty()) message += "\nЛк с нулевой площадью в ${lkWithZero.joinToString { "кв: ${it.numberKv} выд: ${it.number}" }}"
+        if (checkLkWithZero.isNotEmpty()) message += "\nЛк с нулевой площадью в ${checkLkWithZero.truncate().joinToString { "кв: ${it.numberKv} выд: ${it.number}" }}"
         if (sumAreasForKv != null && AppPreferences.checkAreas){
             val resMap = HashMap<Int, Double>()
             val check = calculateAreasForKv()
@@ -196,12 +208,10 @@ class GenController: Controller() {
                 if(diff != 0.0) resMap[it.key] = diff
             }
             if (resMap.isNotEmpty()) message += "\nНе совпадают площади в " + resMap.entries.joinToString { "кв: ${it.key} на ${DecimalFormat("####.#").format(it.value)}" }
-            if (zeroAreas.isNotEmpty()) message += "\nНулевые площади в ${zeroAreas.joinToString { "\nкв: ${it.numberKv}, выд: ${it.number}" }}"
-
-
+            if (checkZeroAreas.isNotEmpty()) message += "\nНулевые площади в ${checkZeroAreas.truncate().joinToString { "\nкв: ${it.numberKv}, выд: ${it.number}" }}"
         }
-        if (checkSkipped && skipped.isNotEmpty()){
-            message += "\nПропущены выдела в ${skipped.entries.joinToString { "кв ${it.key.numberKv} после выд ${it.value}" }}"
+        if (checkSkip && checkSkipped.isNotEmpty()){
+            message += "\nПропущены выдела в ${sortedCheckSkipped.entries.joinToString { "кв ${it.key.numberKv} после выд ${it.value}" }}"
         }
 
         if (message.isNotBlank()){
@@ -212,6 +222,9 @@ class GenController: Controller() {
         }
 
         return true
+    }
+    private fun MutableList<Area>.truncate(): MutableList<Area>{
+        return if (size > outputSize) subList(0, outputSize - 1) else this
     }
 
     /*
