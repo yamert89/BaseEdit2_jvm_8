@@ -136,13 +136,14 @@ class GenController: Controller() {
 
     fun preSaveCheck(): Boolean{
         //tableViewEditModel.commit()
-        var checkSkip = AppPreferences.checkSkipped
-        var checkDublicate = mutableListOf<Area>()
-        var checkCatProt = mutableListOf<Area>()
-        var checkSkipped = HashMap<Area, Int>()
-        var checkZeroNumber = mutableListOf<Area>()
-        var checkLkWithZero = mutableListOf<Area>()
-        var checkZeroAreas = mutableListOf<Area>()
+        var truncated = false
+        val checkSkip = AppPreferences.checkSkipped
+        val checkDuplicate = mutableListOf<Area>()
+        val checkCatProt = mutableListOf<Area>()
+        val checkSkipped = HashMap<Area, Int>()
+        val checkZeroNumber = mutableListOf<Area>()
+        val checkLkWithZero = mutableListOf<Area>()
+        val checkZeroAreas = mutableListOf<Area>()
         val map = mutableMapOf<Int, MutableList<Int>>()
         tableData.forEach {
             if (it.categoryProtection == "-") checkCatProt.add(it)
@@ -159,9 +160,9 @@ class GenController: Controller() {
                 val distinctly= it.value.distinct().sorted()
                 if (distinctly.size != it.value.size) {
                     val full = it.value.sorted()
-                    for (i in 0 until distinctly.size){
-                        if (checkDublicate.any { el -> el.numberKv == it.key }) break
-                        if (full[i] != distinctly[i]) checkDublicate.add(tableData.first { el -> el.numberKv == it.key && el.number == full[i]})
+                    for (i in distinctly.indices){
+                        if (checkDuplicate.any { el -> el.numberKv == it.key }) break
+                        if (full[i] != distinctly[i]) checkDuplicate.add(tableData.first { el -> el.numberKv == it.key && el.number == full[i]})
                     }
                 }
 
@@ -173,19 +174,22 @@ class GenController: Controller() {
 
             }
         }
-        val sortedCheckSkipped = if (checkSkipped.size <= outputSize) TreeMap<Area, Int>().apply {
-            val it = checkSkipped.iterator()
-            var idx = 0
-            while(it.hasNext() && idx++ < 25) with(it.next()){ put(key, value)}
-        } else TreeMap<Area, Int> { o1, o2 ->
-            when {
-                o1 == null || o2 == null -> throw NullPointerException("Area can not be null")
-                else -> o1.let { it.numberKv * 1000 + it.number }.compareTo(o2.let { it.numberKv * 1000 + it.number })
+        val sortedCheckSkipped =  TreeMap<Area, Int>().apply {
+            if (checkSkipped.size > outputSize){
+                truncated = true
+                val it = checkSkipped.iterator()
+                var idx = 0
+                while(it.hasNext() && idx++ < 25) with(it.next()){ put(key, value)}
+            }else putAll(checkSkipped)
+
+        }
+
+        fun MutableList<Area>.truncate(): MutableList<Area>{
+            if (size > outputSize){
+                truncated = true
+                return subList(0, outputSize - 1)
             }
-        }.apply {
-            val it = checkSkipped.iterator()
-            var idx = 0
-            while(it.hasNext() && idx++ < 25) with(it.next()){ put(key, value)}
+            return this
         }
 
         var message = ""
@@ -196,8 +200,8 @@ class GenController: Controller() {
         if (checkZeroNumber.size > 0){
             message += "\nНомер выдела не проставлен в кв ${checkZeroNumber.truncate().joinToString(", "){ it.numberKv.toString()}}"
         }
-        if (checkDublicate.size > 0){
-            message += "\nДубликаты в ${checkDublicate.truncate().joinToString { "кв: ${it.numberKv} выд: ${it.number}"}}"
+        if (checkDuplicate.size > 0){
+            message += "\nДубликаты в ${checkDuplicate.truncate().joinToString { "кв: ${it.numberKv} выд: ${it.number}"}}"
         }
         if (checkLkWithZero.isNotEmpty()) message += "\nЛк с нулевой площадью в ${checkLkWithZero.truncate().joinToString { "кв: ${it.numberKv} выд: ${it.number}" }}"
         if (sumAreasForKv != null && AppPreferences.checkAreas){
@@ -215,6 +219,7 @@ class GenController: Controller() {
         }
 
         if (message.isNotBlank()){
+            if (truncated) message += "\n..."
             if (message.startsWith("\nПропущены выдела")) confirm("Сохранить?", content = message){
                 return true
             } else alert(Alert.AlertType.ERROR, "Ошибка",  message  )
@@ -223,9 +228,7 @@ class GenController: Controller() {
 
         return true
     }
-    private fun MutableList<Area>.truncate(): MutableList<Area>{
-        return if (size > outputSize) subList(0, outputSize - 1) else this
-    }
+
 
     /*
     * if duplicates not found returns 0

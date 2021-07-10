@@ -1,7 +1,7 @@
 import javafx.beans.property.*
 import tornadofx.*
 
-class Area(number: Int, numberKv: Int, area: Double, categoryArea: String, categoryProtection: String, ozu: String, lesb: String, val rawData: RawData) {
+class Area(number: Int, numberKv: Int, area: Double, categoryArea: String, categoryProtection: String, ozu: String, lesb: String, val rawData: RawData) : Comparable<Area>{
     var numberProperty = SimpleIntegerProperty(this, "number", number)
     var number by numberProperty
 
@@ -24,6 +24,9 @@ class Area(number: Int, numberKv: Int, area: Double, categoryArea: String, categ
         val intV = lesb.toInt()
         lesb.length > 4 || intV < 0 || intV > 9999}
     var lesb by lesbProperty
+    override fun compareTo(other: Area): Int {
+        return let { it.numberKv * 1000 + it.number }.compareTo(other.let { it.numberKv * 1000 + it.number })
+    }
 
 }
 
