@@ -6,13 +6,13 @@ import tornadofx.Controller
 import tornadofx.find
 import java.lang.NumberFormatException
 
-class AreaConverter: StringConverter<Double>(){
-    override fun fromString(string: String?): Double {
-        var d = 0.0
+class AreaConverter: StringConverter<Float>(){
+    override fun fromString(string: String?): Float {
+        var d = 0f
         try{
             if(string == null) return d
             val string2 = string.replace(",", ".")
-            d = string2.toDouble()
+            d = string2.toFloat()
             if(string2.contains(".") && string2.length - string2.indexOfLast { it == '.' } > 2) throw Exception()
             return d
         }catch (e: NumberFormatException){
@@ -20,10 +20,10 @@ class AreaConverter: StringConverter<Double>(){
         }catch (e: Exception){
             tornadofx.error("Ошибка", "Введите десятичное число с одним знаком после запятой")
         }
-        return 0.0
+        return 0f
     }
 
-    override fun toString(`object`: Double?): String {
+    override fun toString(`object`: Float?): String {
         return `object`.toString()
     }
 

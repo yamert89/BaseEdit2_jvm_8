@@ -1,6 +1,6 @@
 package views
 
-import Area
+import SKLArea
 import GenController
 import Notification
 import javafx.geometry.Insets
@@ -71,7 +71,7 @@ class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage
                             notification.notif("Нет удалённых выделов")
                             return@action
                         }
-                        val pairOfArea = controller.deletedRows.pollLast() as Pair<Int, Area>
+                        val pairOfArea = controller.deletedRows.pollLast() as Pair<Int, SKLArea>
                         controller.tableData[pairOfArea.first] = pairOfArea.second
                         notification.notif("Выдел ${pairOfArea.second.number} квартала ${pairOfArea.second.numberKv} восстановлен")
                     }

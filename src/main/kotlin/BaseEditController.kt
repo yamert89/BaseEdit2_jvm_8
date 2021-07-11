@@ -14,15 +14,15 @@ import kotlin.collections.HashMap
 
 class GenController: Controller() {
     private val outputSize: Int = 25
-    val tableData = emptyList<Area>().toMutableList().asObservable()
-    val deletedRows = ArrayDeque<Pair<Int, Area>>()
+    val tableData = emptyList<SKLArea>().toMutableList().asObservable()
+    val deletedRows = ArrayDeque<Pair<Int, SKLArea>>()
     var sumAreasForKv :  Map<Int, Double>? = null
     private var filePath = ""
     var fileOpened = SimpleBooleanProperty(false)
-    var selected: Area? = null
+    var selected: SKLArea? = null
     var selectedRow: Int = 0
-    var selectedCol: TableColumn<Area, *>? = null
-    lateinit var tableView: TableView<Area>
+    var selectedCol: TableColumn<SKLArea, *>? = null
+    lateinit var tableView: TableView<SKLArea>
     var addButton = Button()
     var delButton = addButton
     var saveButton = addButton
@@ -31,9 +31,9 @@ class GenController: Controller() {
         vgrow = Priority.ALWAYS
     }
 
-    fun addArea(item: Area) = tableData.add(selectedRow, item)
+    fun addArea(item: SKLArea) = tableData.add(selectedRow, item)
 
-    fun getData(): ObservableList<Area> {
+    fun getData(): ObservableList<SKLArea> {
         return tableData
     }
 
@@ -85,7 +85,7 @@ class GenController: Controller() {
 
         println("Изменений ${filteredData}")
 
-        val tempList = HashMap<String, Area>()
+        val tempList = HashMap<String, SKLArea>()
 
         filteredData.forEach { tempList["${it.numberKv}|${it.number}|${it.categoryArea}"] = it }
         if(tempList.isEmpty()) return arrayOf(0)
@@ -121,7 +121,7 @@ class GenController: Controller() {
             return arrayOf(-1)
         }
 
-        val indexedMap = HashMap<Int, Area>()
+        val indexedMap = HashMap<Int, SKLArea>()
 
         for (i in 0 until tableData.size){
             val area = tableData[i]
@@ -138,12 +138,12 @@ class GenController: Controller() {
         //tableViewEditModel.commit()
         var truncated = false
         val checkSkip = AppPreferences.checkSkipped
-        val checkDuplicate = mutableListOf<Area>()
-        val checkCatProt = mutableListOf<Area>()
-        val checkSkipped = HashMap<Area, Int>()
-        val checkZeroNumber = mutableListOf<Area>()
-        val checkLkWithZero = mutableListOf<Area>()
-        val checkZeroAreas = mutableListOf<Area>()
+        val checkDuplicate = mutableListOf<SKLArea>()
+        val checkCatProt = mutableListOf<SKLArea>()
+        val checkSkipped = HashMap<SKLArea, Int>()
+        val checkZeroNumber = mutableListOf<SKLArea>()
+        val checkLkWithZero = mutableListOf<SKLArea>()
+        val checkZeroAreas = mutableListOf<SKLArea>()
         val map = mutableMapOf<Int, MutableList<Int>>()
         tableData.forEach {
             if (it.categoryProtection == "-") checkCatProt.add(it)
@@ -174,7 +174,7 @@ class GenController: Controller() {
 
             }
         }
-        val sortedCheckSkipped =  TreeMap<Area, Int>().apply {
+        val sortedCheckSkipped =  TreeMap<SKLArea, Int>().apply {
             if (checkSkipped.size > outputSize){
                 truncated = true
                 val it = checkSkipped.iterator()
@@ -184,7 +184,7 @@ class GenController: Controller() {
 
         }
 
-        fun MutableList<Area>.truncate(): MutableList<Area>{
+        fun MutableList<SKLArea>.truncate(): MutableList<SKLArea>{
             if (size > outputSize){
                 truncated = true
                 return subList(0, outputSize - 1)

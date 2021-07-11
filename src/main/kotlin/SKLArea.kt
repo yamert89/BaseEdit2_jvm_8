@@ -1,14 +1,20 @@
 import javafx.beans.property.*
+import roslesinforg.porokhin.areatypes.Area
+import roslesinforg.porokhin.areatypes.fields.Field1
 import tornadofx.*
 
-class Area(number: Int, numberKv: Int, area: Double, categoryArea: String, categoryProtection: String, ozu: String, lesb: String, val rawData: RawData) : Comparable<Area>{
+class SKLArea(number: Int, numberKv: Int, area: Float, categoryArea: String, categoryProtection: String, ozu: String, lesb: String, val rawData: RawData) : Comparable<SKLArea>{
+    val backingArea = Area(kv = numberKv, categoryProtection = categoryProtection.toInt(), column5 = lesb, field1 = Field1(
+        number, area, categoryArea.toInt(), 0, ozu.toInt()
+    ))
+
     var numberProperty = SimpleIntegerProperty(this, "number", number)
     var number by numberProperty
 
     var numberKvProperty = SimpleIntegerProperty(this, "numberKv", numberKv)
     var numberKv by numberKvProperty
 
-    var areaProperty = SimpleDoubleProperty(this, "area", area)
+    var areaProperty = SimpleFloatProperty(this, "area", area)
     var area by areaProperty
 
     var categoryAreaProperty = SimpleStringProperty(this, "categoryArea", categoryArea)
@@ -24,20 +30,10 @@ class Area(number: Int, numberKv: Int, area: Double, categoryArea: String, categ
         val intV = lesb.toInt()
         lesb.length > 4 || intV < 0 || intV > 9999}
     var lesb by lesbProperty
-    override fun compareTo(other: Area): Int {
+
+    override fun compareTo(other: SKLArea): Int {
         return let { it.numberKv * 1000 + it.number }.compareTo(other.let { it.numberKv * 1000 + it.number })
     }
-
-}
-
-class AreaModel: ItemViewModel<Area>(){
-    val number = bind(Area::numberProperty)
-    val numberKv = bind(Area::numberKvProperty) as IntegerProperty
-    val area = bind(Area::areaProperty) as DoubleProperty
-    val categoryArea = bind(Area::categoryAreaProperty) as StringProperty
-    val categoryProtection = bind(Area::categoryProtectionProperty) as StringProperty
-    val ozu = bind(Area::ozuProperty) as StringProperty
-    val lesb = bind(Area::lesbProperty) as StringProperty
 
 }
 

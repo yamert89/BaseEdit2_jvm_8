@@ -1,8 +1,6 @@
 import java.io.*
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
 
 class FileExecutor {
     private lateinit var raf: RandomAccessFile
@@ -11,21 +9,21 @@ class FileExecutor {
     private var counter = 0L
 
 
-    fun parseFile(file: File): List<Area>{
+    fun parseFile(file: File): List<SKLArea>{
         raf = RandomAccessFile(file, "r")
-        val list = mutableListOf<Area>()
+        val list = mutableListOf<SKLArea>()
         var counter = 0L
         while (raf.filePointer < file.length()){
             val catProt = readCategoryProtection()
             val number = readNumber().toInt()
             val kvNumber = readNumberKv().toInt()
-            val area = BigDecimal((readArea().toDouble() * 0.1)).setScale(1, RoundingMode.HALF_UP).toDouble()
+            val area = BigDecimal((readArea().toFloat() * 0.1)).setScale(1, RoundingMode.HALF_UP).toFloat()
             val catArea = readCategoryArea()
             val lesb = readLesb()
             val oz = readOzu()
             val rawData = readRawData()
             list.add(
-                Area(number, kvNumber, area, catArea,
+                SKLArea(number, kvNumber, area, catArea,
                     DataTypes.categoryProtection[catProt] ?: catProt,
                     DataTypes.ozu[oz] ?: oz,
                     lesb, rawData
@@ -98,10 +96,10 @@ class FileExecutor {
    // private fun writeCategoryProtection() = writeToken()
 
 
-    fun saveFile(file: File, areas: List<Area>){
+    fun saveFile(file: File, SKLAreas: List<SKLArea>){
         //raf = RandomAccessFile(file, "r")
         val out = ByteArrayOutputStream()
-        areas.forEach {
+        SKLAreas.forEach {
             with(out){
                 val catpMap = DataTypes.categoryProtection.filterValues { v -> v == it.categoryProtection }
                 val catProt = if(catpMap.size > 0) catpMap.iterator().next().key else it.categoryProtection
@@ -111,7 +109,7 @@ class FileExecutor {
                 write(it.lesb.addZeroes(4))
                 write(it.rawData.data2)
                 write(it.number.addZeroes(3))
-                val area = BigDecimal(it.area * 10).setScale(0).toString()
+                val area = BigDecimal(it.area.toDouble() * 10).setScale(0).toString()
                 write(area.addZeroes(5))
                 write(it.categoryArea.toByteArray(charset))
                 write(it.rawData.data3)
