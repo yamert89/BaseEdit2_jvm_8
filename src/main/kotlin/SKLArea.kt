@@ -3,9 +3,9 @@ import roslesinforg.porokhin.areatypes.Area
 import roslesinforg.porokhin.areatypes.fields.Field1
 import tornadofx.*
 
-class SKLArea(number: Int, numberKv: Int, area: Float, categoryArea: String, categoryProtection: String, ozu: String, lesb: String, val rawData: RawData) : Comparable<SKLArea>{
+class SKLArea(number: Int, numberKv: Int, area: Float, categoryArea: String, categoryProtection: Int, ozu: Int, lesb: String, val rawData: RawData) : Comparable<SKLArea>{
     val backingArea = Area(kv = numberKv, categoryProtection = categoryProtection.toInt(), column5 = lesb, field1 = Field1(
-        number, area, categoryArea.toInt(), 0, ozu.toInt()
+        number, area, categoryArea.toInt(), 0, ozu
     ))
 
     var numberProperty = SimpleIntegerProperty(this, "number", number)
@@ -20,10 +20,10 @@ class SKLArea(number: Int, numberKv: Int, area: Float, categoryArea: String, cat
     var categoryAreaProperty = SimpleStringProperty(this, "categoryArea", categoryArea)
     var categoryArea by categoryAreaProperty
 
-    var categoryProtectionProperty = SimpleStringProperty(this, "categoryProtection", categoryProtection)
+    var categoryProtectionProperty = SimpleIntegerProperty(this, "categoryProtection", categoryProtection) as Property<Int>
     var categoryProtection by categoryProtectionProperty
 
-    var ozuProperty = SimpleStringProperty(this, "ozu", ozu)
+    var ozuProperty = SimpleIntegerProperty(this, "ozu", ozu) as Property<Int>
     var ozu by ozuProperty
 
     var lesbProperty = SpecStringProperty(this, "lesb", lesb){

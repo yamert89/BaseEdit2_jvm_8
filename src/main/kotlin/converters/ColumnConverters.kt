@@ -2,6 +2,7 @@ package converters
 
 import GenController
 import javafx.util.StringConverter
+import roslesinforg.porokhin.areatypes.GeneralTypes
 import tornadofx.Controller
 import tornadofx.find
 import java.lang.NumberFormatException
@@ -47,5 +48,15 @@ class NumberConverter: StringConverter<Int>() {
             tornadofx.error("Ошибка", "Не удалось преобразовать в число")
         }
         return 0
+    }
+}
+
+class CategoryProtectionConverter: StringConverter<Int>(){
+    override fun fromString(string: String): Int {
+        return GeneralTypes.categoryProtection.entries.find { it.value == string }!!.key
+    }
+
+    override fun toString(`object`: Int): String {
+        return GeneralTypes.categoryProtection[`object`]
     }
 }

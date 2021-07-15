@@ -3,12 +3,17 @@ package views
 import SKLArea
 import GenController
 import converters.AreaConverter
+import converters.CategoryProtectionConverter
 import converters.NumberConverter
 import javafx.beans.property.Property
+import javafx.collections.ObservableList
 import javafx.scene.control.Tab
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
+import javafx.scene.control.cell.ComboBoxTableCell
 import javafx.scene.paint.Color
+import javafx.util.StringConverter
+import roslesinforg.porokhin.areatypes.GeneralTypes
 import tornadofx.*
 import java.lang.NumberFormatException
 
@@ -69,8 +74,8 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                     //setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
 
                 }
-                column("К. защитности", SKLArea::categoryProtection).makeEditable()
-                    .useComboBox(DataTypes.categoryProtection.values.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
+                column("К. защитности", SKLArea::categoryProtection)
+                    .useComboBox(CategoryProtectionConverter(), GeneralTypes.categoryProtection.keys.toList().asObservable() ).apply { isSortable = AppPreferences.sorting }
 
                 val kz = readonlyColumn("К. земель", SKLArea::categoryArea).apply { isSortable = AppPreferences.sorting }
                     kz.cellFormat {
@@ -113,6 +118,16 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
             }
         }
     }
+
+    fun <S, T> TableColumn<S, T>.useComboBox(converter: StringConverter<T>? = null, items: ObservableList<T>, afterCommit: (TableColumn.CellEditEvent<S, T?>) -> Unit = {}) = apply {
+        cellFactory = if (converter == null) ComboBoxTableCell.forTableColumn(items) else ComboBoxTableCell.forTableColumn(converter, items)
+        setOnEditCommit {
+            val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<T?>
+            property.value = it.newValue
+            afterCommit(it)
+        }
+    }
+
     private fun <T> TableView<SKLArea>.columnOnEdit(editEvent: TableColumn.CellEditEvent<SKLArea, T>, idx: Int, condition: () -> Boolean) {
         if (condition()) {
             tornadofx.error("Невалидное значение")
