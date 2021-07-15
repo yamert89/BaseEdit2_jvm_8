@@ -72,7 +72,7 @@ class ButtonsPaneInitFunction(private val hBox: HBox, private val rootView: Pare
                         return@action
                     }
                     var item = controller.selected!!
-                    item = SKLArea(0, item.numberKv, 0f, item.categoryArea, DataTypes.EMPTY_CATEGORY_PROTECTION, item.ozu, item.lesb, item.rawData)
+                    item = SKLArea(0, item.numberKv, 0f, item.categoryArea, 0, item.ozu, item.lesb, item.rawData)
 
                     controller.addArea(item)
 

@@ -2,8 +2,10 @@ package views
 
 import SKLArea
 import GenController
+import com.sun.org.apache.bcel.internal.classfile.Code
 import converters.AreaConverter
 import converters.CategoryProtectionConverter
+import converters.CodeMappingConverter
 import converters.NumberConverter
 import javafx.beans.property.Property
 import javafx.collections.ObservableList
@@ -74,8 +76,9 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                     //setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
 
                 }
-                column("К. защитности", SKLArea::categoryProtection)
-                    .useComboBox(CategoryProtectionConverter(), GeneralTypes.categoryProtection.keys.toList().asObservable() ).apply { isSortable = AppPreferences.sorting }
+                column("К. защитности", SKLArea::categoryProtection).useComboBox(
+                    CodeMappingConverter(GeneralTypes::categoryProtection),
+                    GeneralTypes.categoryProtection.keys.toList().plus(0).asObservable() ).apply { isSortable = AppPreferences.sorting }
 
                 val kz = readonlyColumn("К. земель", SKLArea::categoryArea).apply { isSortable = AppPreferences.sorting }
                     kz.cellFormat {
@@ -85,7 +88,7 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                         }
                     }
 
-                column("ОЗУ", SKLArea::ozu).makeEditable().useComboBox(DataTypes.ozu.values.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
+                column("ОЗУ", SKLArea::ozu).useComboBox(CodeMappingConverter(GeneralTypes::typesOfProtection), GeneralTypes.typesOfProtection.keys.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
                 column("lesb", SKLArea::lesb).apply {
                     makeEditable()
                     isSortable = AppPreferences.sorting

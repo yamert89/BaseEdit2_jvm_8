@@ -1,3 +1,4 @@
+@Deprecated("migration", ReplaceWith("roslesinforg.porokhin.areatypes2.GeneralTypes") )
 object DataTypes {
 
     val EMPTY = ""

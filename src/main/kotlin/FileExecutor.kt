@@ -23,7 +23,7 @@ class FileExecutor {
             val oz = readOzu()
             val rawData = readRawData()
             list.add(
-                SKLArea(number, kvNumber, area, catArea, catProt, oz, lesb, rawData)
+                SKLArea(number, kvNumber, area, catArea, catProt.toInt(), oz.toInt(), lesb, rawData)
             )
             //println("list add " + ++counter)
             //nextLine()
@@ -97,9 +97,7 @@ class FileExecutor {
         val out = ByteArrayOutputStream()
         SKLAreas.forEach {
             with(out){
-                val catpMap = DataTypes.categoryProtection.filterValues { v -> v == it.categoryProtection }
-                val catProt = if(catpMap.size > 0) catpMap.iterator().next().key else it.categoryProtection
-                write(catProt.toByteArray(charset))
+                write(it.categoryProtection.toString().toByteArray(charset))
                 write(it.numberKv.addZeroes(4))
                 write(it.rawData.admRegion)
                 write(it.lesb.addZeroes(4))
@@ -109,9 +107,7 @@ class FileExecutor {
                 write(area.addZeroes(5))
                 write(it.categoryArea.toByteArray(charset))
                 write(it.rawData.data3)
-                val ozMap = DataTypes.ozu.filterValues { v -> v == it.ozu }
-                val oz = if(ozMap.size > 0) ozMap.iterator().next().key else it.ozu
-                write(oz.toByteArray(charset))
+                write(it.ozu.toString().toByteArray(charset))
                 if (it.rawData.data4 != null) {
                     write(it.rawData.data4)
                 }

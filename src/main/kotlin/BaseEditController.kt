@@ -2,16 +2,17 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.*
 import javafx.scene.layout.Priority
+import roslesinforg.porokhin.areatypes.GeneralTypes
 import roslesinforg.porokhin.areatypes.Kv
 import roslesinforg.porokhin.areaviews.StrictAreaController
 import tornadofx.*
 import java.io.File
-import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.Exception
 import kotlin.collections.HashMap
 
 class GenController: Controller(), StrictAreaController {
@@ -78,7 +79,7 @@ class GenController: Controller(), StrictAreaController {
 
 
     /*
-    * return array where 0-index - code, 1-index - number of rows
+    * return array where 0-index - code, 1-index - number of rows //todo replace with Param of GeoBaseEditor
     * */
     fun executeUtil(param1: Pair<Any?, String>, param2: Pair<Any?, String>, resParam: Pair<Any, String>): Array<Int>{
         println("Записей было ${tableData.size}")
@@ -88,8 +89,8 @@ class GenController: Controller(), StrictAreaController {
                 when(param1.first){
                     DataTypes.KV -> it.numberKv == param1.second.toInt()
                     DataTypes.CATEGORY_AREA -> it.categoryArea == param1.second
-                    DataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param1.second
-                    DataTypes.OZU -> it.ozu == param1.second
+                    DataTypes.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param1.second
+                    DataTypes.OZU -> it.ozu.toString() == param1.second
                     DataTypes.LESB -> it.lesb == param1.second
                     else -> throw IllegalArgumentException("invalid param")
                 }
@@ -98,8 +99,8 @@ class GenController: Controller(), StrictAreaController {
                         when(param2.first){
                             DataTypes.KV -> it.numberKv == param2.second.toInt()
                             DataTypes.CATEGORY_AREA -> it.categoryArea == param2.second
-                            DataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param2.second
-                            DataTypes.OZU -> it.ozu == param2.second
+                            DataTypes.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param2.second
+                            DataTypes.OZU -> it.ozu.toString() == param2.second
                             DataTypes.LESB -> it.lesb == param2.second
                             else -> throw IllegalArgumentException("invalid param")
                         }
@@ -115,28 +116,33 @@ class GenController: Controller(), StrictAreaController {
         if(tempList.isEmpty()) return arrayOf(0)
 
         try {
-            tempList.forEach {
+            tempList.forEach { item ->
                 when(resParam.first){
                     DataTypes.CATEGORY_AREA -> {
                         val intView = resParam.second.toInt()
                         if(resParam.second.length != 4 || (intView < 1101 || intView > 2556)) return arrayOf(-1)
-                        it.value.categoryArea = resParam.second
+                        item.value.categoryArea = resParam.second
                     }
                     DataTypes.CATEGORY_PROTECTION -> {
-                        val contKey = DataTypes.categoryProtection.containsKey(resParam.second)
-                        val contValue = DataTypes.categoryProtection.containsValue(resParam.second)
-                        if(!contKey && !contValue) return arrayOf(-1)
-                        it.value.categoryProtection = if(contKey) DataTypes.categoryProtection[resParam.second] else resParam.second
+                        try {
+                            item.value.categoryProtection = GeneralTypes.categoryProtection.entries.find { it.value == resParam.second }!!.key
+                        }catch (e: Exception){
+                            e.printStackTrace()
+                            return arrayOf(-1)
+                        }
+
                     }
                     DataTypes.OZU -> {
-                        val conKey = DataTypes.ozu.containsKey(resParam.second)
-                        val contValue = DataTypes.ozu.containsValue(resParam.second)
-                        if(!conKey && !contValue) return arrayOf(-1)
-                        it.value.ozu = if (conKey) DataTypes.ozu[resParam.second] else resParam.second
+                        try {
+                            item.value.ozu = GeneralTypes.typesOfProtection.entries.find { it.value == resParam.second }!!.key
+                        }catch (e: Exception){
+                            e.printStackTrace()
+                            return arrayOf(-1)
+                        }
                     }
                     DataTypes.LESB -> {
                         if (resParam.second.length != 4) return arrayOf(-1)
-                        it.value.lesb = resParam.second
+                        item.value.lesb = resParam.second
                     }
                 }
             }
@@ -170,10 +176,10 @@ class GenController: Controller(), StrictAreaController {
         val checkZeroAreas = mutableListOf<SKLArea>()
         val map = mutableMapOf<Int, MutableList<Int>>()
         tableData.forEach {
-            if (it.categoryProtection == "-") checkCatProt.add(it)
+            if (it.categoryProtection == 0) checkCatProt.add(it)
             val intVal = it.categoryArea.toInt()
             if (intVal in 1108..1207 && it.area == 0f) checkLkWithZero.add(it)
-            if (it.area == 0f && it.categoryProtection != DataTypes.categoryProtection["400000"]) checkZeroAreas.add(it)
+            if (it.area == 0f && it.categoryProtection != 400000) checkZeroAreas.add(it)
             if(it.number == 0) checkZeroNumber.add(it)
             if (!map.containsKey(it.numberKv)) map[it.numberKv] = mutableListOf()
             map[it.numberKv]!!.add(it.number)
