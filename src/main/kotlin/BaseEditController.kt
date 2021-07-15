@@ -2,6 +2,8 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.*
 import javafx.scene.layout.Priority
+import roslesinforg.porokhin.areatypes.Kv
+import roslesinforg.porokhin.areaviews.StrictAreaController
 import tornadofx.*
 import java.io.File
 import java.lang.Exception
@@ -12,7 +14,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
 
-class GenController: Controller() {
+class GenController: Controller(), StrictAreaController {
     private val outputSize: Int = 25
     val tableData = emptyList<SKLArea>().toMutableList().asObservable()
     val deletedRows = ArrayDeque<Pair<Int, SKLArea>>()
@@ -31,7 +33,29 @@ class GenController: Controller() {
         vgrow = Priority.ALWAYS
     }
 
-    fun addArea(item: SKLArea) = tableData.add(selectedRow, item)
+    override val startSq = mutableListOf<Kv>().toObservable()
+
+    override fun <T : View> setStrictView(view: T) {
+        //TODO("Not yet implemented")
+    }
+
+    override fun error(text: String) {
+        println(text)
+        //TODO("Not yet implemented")
+    }
+
+    fun addArea(item: SKLArea) {
+        tableData.add(selectedRow, item)
+        findKv(item.numberKv).areas.add(selectedRow, item.backingArea)
+    }
+
+    fun delArea(){
+        val item = tableData[selectedRow]
+        deletedRows.add(selectedRow to item)
+        tableData.removeAt(selectedRow)
+        tableView.selectionModel.select(selectedRow + 1, selectedCol)
+        findKv(item.numberKv).areas.removeAt(selectedRow)
+    }
 
     fun getData(): ObservableList<SKLArea> {
         return tableData
@@ -148,8 +172,8 @@ class GenController: Controller() {
         tableData.forEach {
             if (it.categoryProtection == "-") checkCatProt.add(it)
             val intVal = it.categoryArea.toInt()
-            if (intVal in 1108..1207 && it.area == 0.0) checkLkWithZero.add(it)
-            if (it.area == 0.0 && it.categoryProtection != DataTypes.categoryProtection["400000"]) checkZeroAreas.add(it)
+            if (intVal in 1108..1207 && it.area == 0f) checkLkWithZero.add(it)
+            if (it.area == 0f && it.categoryProtection != DataTypes.categoryProtection["400000"]) checkZeroAreas.add(it)
             if(it.number == 0) checkZeroNumber.add(it)
             if (!map.containsKey(it.numberKv)) map[it.numberKv] = mutableListOf()
             map[it.numberKv]!!.add(it.number)
@@ -262,7 +286,11 @@ class GenController: Controller() {
                 initData(file)
                 res = true
                 AppPreferences.recentPath = file.absolutePath
+                tableData.map { it.backingArea }.groupBy{ it.kv }.map { it.key to it.value }.forEach {
+                    startSq.add(Kv(it.first, it.second.toMutableList()))
+                }
             }catch (e: Exception){
+                e.printStackTrace()
                 return@runAsyncWithProgress
             }
             println("end init")
@@ -273,4 +301,6 @@ class GenController: Controller() {
             if(!res) error("Ошибка", "Ошибка чтения файла")
         }
     }
+
+
 }

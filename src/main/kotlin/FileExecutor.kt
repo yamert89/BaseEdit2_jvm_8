@@ -23,11 +23,7 @@ class FileExecutor {
             val oz = readOzu()
             val rawData = readRawData()
             list.add(
-                SKLArea(number, kvNumber, area, catArea,
-                    DataTypes.categoryProtection[catProt] ?: catProt,
-                    DataTypes.ozu[oz] ?: oz,
-                    lesb, rawData
-                )
+                SKLArea(number, kvNumber, area, catArea, catProt, oz, lesb, rawData)
             )
             //println("list add " + ++counter)
             //nextLine()

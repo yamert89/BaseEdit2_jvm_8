@@ -31,7 +31,6 @@ class BaseEdit2: App(ParentView::class)
 
 class ParentView : View(){
     private val controller = find(GenController::class)
-    private val model: AreaModel by inject()
     private var status = Label()
 
     init {
@@ -94,5 +93,7 @@ class ParentView : View(){
 
         find(Notification::class, Pair(PAR_LABEL, status)) // create notification with label
     }
+
+    fun openStrictAreaView() = find<BE2StrictView>().openWindow(owner = this.currentWindow)
 }
 

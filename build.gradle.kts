@@ -27,6 +27,7 @@ dependencies {
     testCompile("junit", "junit", "4.12")
     implementation("no.tornado:tornadofx:1.7.20")
     implementation(project(":areatypes2"))
+    implementation(project(":areaviews2"))
 }
 
 configure<JavaPluginConvention> {

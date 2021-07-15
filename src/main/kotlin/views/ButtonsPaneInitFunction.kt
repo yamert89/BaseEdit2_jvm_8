@@ -72,7 +72,7 @@ class ButtonsPaneInitFunction(private val hBox: HBox, private val rootView: Pare
                         return@action
                     }
                     var item = controller.selected!!
-                    item = SKLArea(0, item.numberKv, 0.0, item.categoryArea, DataTypes.EMPTY_CATEGORY_PROTECTION, item.ozu, item.lesb, item.rawData)
+                    item = SKLArea(0, item.numberKv, 0f, item.categoryArea, DataTypes.EMPTY_CATEGORY_PROTECTION, item.ozu, item.lesb, item.rawData)
 
                     controller.addArea(item)
 
@@ -102,11 +102,7 @@ class ButtonsPaneInitFunction(private val hBox: HBox, private val rootView: Pare
                         owner = rootView.primaryStage,
                         actionFn = { buttonType ->
                             if (buttonType == ButtonType.OK) {
-                                with(controller){
-                                    deletedRows.add(selectedRow to tableData[selectedRow])
-                                    tableData.removeAt(selectedRow)
-                                    tableView.selectionModel.select(selectedRow + 1, selectedCol)
-                                }
+                                controller.delArea()
                             }
                         })
 
