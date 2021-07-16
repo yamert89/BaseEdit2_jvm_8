@@ -209,7 +209,7 @@ class GenController: Controller() {
             val check = calculateAreasForKv()
             check.forEach{
                 val diff = it.value - sumAreasForKv!![it.key]!!
-                if(diff >= 0.1 && diff < -0.1) resMap[it.key] = diff
+                if(diff > 0.08 || diff < -0.08) resMap[it.key] = diff
             }
             if (resMap.isNotEmpty()) message += "\nНе совпадают площади в " + resMap.entries.joinToString { "кв: ${it.key} на ${DecimalFormat("####.#").format(it.value)}" }
             if (checkZeroAreas.isNotEmpty()) message += "\nНулевые площади в ${checkZeroAreas.truncate().joinToString { "\nкв: ${it.numberKv}, выд: ${it.number}" }}"
