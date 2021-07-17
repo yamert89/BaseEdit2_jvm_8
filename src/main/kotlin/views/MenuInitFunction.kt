@@ -3,13 +3,14 @@ package views
 import SKLArea
 import GenController
 import Notification
+import ParentView
 import javafx.geometry.Insets
 import javafx.scene.control.MenuBar
 import javafx.stage.Stage
 import tornadofx.*
 import java.nio.file.Paths
 
-class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage: Stage): InitFunction<MenuBar> {
+class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage: Stage, private val mainView: ParentView): InitFunction<MenuBar> {
     private val controller = find(GenController::class)
     private val notification = find(Notification::class)
     override fun getInitial(): MenuBar.() -> Unit {
@@ -30,6 +31,7 @@ class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage
 
                         if (files.isEmpty()) return@action
                         controller.openFile(files[0])
+                        if (AppPreferences.checkAreas) mainView.openStrictAreaView()
                     }
                 }
                 val recentPath = Paths.get(AppPreferences.recentPath)
@@ -37,6 +39,7 @@ class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage
                 if (recentPath.toString().isNotEmpty() && recentPath.toFile().exists()) item("Открыть последний: <${recentPath.fileName}>"){
                     action {
                         controller.openFile(recentPath.toFile())
+                        if (AppPreferences.checkAreas) mainView.openStrictAreaView()
                     }
                 }
                 item("Сохранить"){

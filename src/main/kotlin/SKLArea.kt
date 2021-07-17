@@ -31,8 +31,20 @@ class SKLArea(number: Int, numberKv: Int, area: Float, categoryArea: String, cat
         lesb.length > 4 || intV < 0 || intV > 9999}
     var lesb by lesbProperty
 
+    init {
+        numberProperty.onChange { backingArea.field1.number = it }
+        areaProperty.onChange { backingArea.field1.area = it }
+        categoryProtectionProperty.onChange { backingArea.categoryProtection = it!! }
+        ozuProperty.onChange { backingArea.field1.typeOfProtection = it!! }
+        lesbProperty.onChange { backingArea.column5 = it!! }
+    }
+
     override fun compareTo(other: SKLArea): Int {
         return let { it.numberKv * 1000 + it.number }.compareTo(other.let { it.numberKv * 1000 + it.number })
+    }
+
+    override fun toString(): String {
+        return backingArea.id.toString()
     }
 
 }

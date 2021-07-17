@@ -56,10 +56,12 @@ class NumberConverter: StringConverter<Int>() {
 
 class CodeMappingConverter(private val map: KProperty0<Map<Int, String>>): StringConverter<Int>(){
     override fun fromString(string: String): Int {
+        //if (string != "-") println("$string : ${map.get().entries.find { it.value == string }}")
         return if (string == "-") 0 else map.get().entries.find { it.value == string }?.key ?: string.toInt()
     }
 
     override fun toString(`object`: Int?): String {
+        //println("$`object` : ${map.get().containsKey(`object`)}")
         return if (`object` == 0) "-" else map.get()[`object`] ?: `object`.toString()
     }
 

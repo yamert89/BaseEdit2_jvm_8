@@ -71,14 +71,17 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
 
                 column("Площадь", SKLArea::area).apply {
                     makeEditable(AreaConverter())
-                    setOnEditCommit { columnOnEdit(it, 2) { it.newValue > 9999 || it.newValue < 0 } }
+                    setOnEditCommit {
+                        controller.updateStrictView()
+                        columnOnEdit(it, 2) { it.newValue > 9999 || it.newValue < 0 }
+                    }
                     isSortable = AppPreferences.sorting
                     //setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
 
                 }
                 column("К. защитности", SKLArea::categoryProtection).useComboBox(
-                    CodeMappingConverter(GeneralTypes::categoryProtection),
-                    GeneralTypes.categoryProtection.keys.toList().plus(0).asObservable() ).apply { isSortable = AppPreferences.sorting }
+                    CodeMappingConverter(GeneralTypes::categoryProtectionLong),
+                    GeneralTypes.categoryProtectionLong.keys.toList().plus(0).asObservable() ).apply { isSortable = AppPreferences.sorting }
 
                 val kz = readonlyColumn("К. земель", SKLArea::categoryArea).apply { isSortable = AppPreferences.sorting }
                     kz.cellFormat {
@@ -88,7 +91,7 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                         }
                     }
 
-                column("ОЗУ", SKLArea::ozu).useComboBox(CodeMappingConverter(GeneralTypes::typesOfProtection), GeneralTypes.typesOfProtection.keys.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
+                column("ОЗУ", SKLArea::ozu).useComboBox(CodeMappingConverter(GeneralTypes::typesOfProtectionLong), GeneralTypes.typesOfProtectionLong.keys.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
                 column("lesb", SKLArea::lesb).apply {
                     makeEditable()
                     isSortable = AppPreferences.sorting

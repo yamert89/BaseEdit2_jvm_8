@@ -49,12 +49,13 @@ class ParentView : View(){
         primaryStage.setOnShown {
             primaryStage.icons.add(resources.image("Desktop.png"))
         }
+
     }
 
 
     override val root = vbox {
 
-        controller.menuBar = menubar { MenuBarInitFunction(this, primaryStage).getInitial().invoke(this) }
+        controller.menuBar = menubar { MenuBarInitFunction(this, primaryStage, this@ParentView).getInitial().invoke(this) }
 
         hbox {
             ButtonsPaneInitFunction(this, this@ParentView).getInitial().invoke(this)

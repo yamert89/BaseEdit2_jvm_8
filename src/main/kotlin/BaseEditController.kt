@@ -33,11 +33,12 @@ class GenController: Controller(), StrictAreaController {
     var progress = ProgressBar().apply {
         vgrow = Priority.ALWAYS
     }
+    private var strictView: BE2StrictView? = null
 
     override val startSq = mutableListOf<Kv>().toObservable()
 
     override fun <T : View> setStrictView(view: T) {
-        //TODO("Not yet implemented")
+        strictView = view as BE2StrictView
     }
 
     override fun error(text: String) {
@@ -55,7 +56,7 @@ class GenController: Controller(), StrictAreaController {
         deletedRows.add(selectedRow to item)
         tableData.removeAt(selectedRow)
         tableView.selectionModel.select(selectedRow + 1, selectedCol)
-        findKv(item.numberKv).areas.removeAt(selectedRow)
+        findKv(item.numberKv).areas.remove(item.backingArea)
     }
 
     fun getData(): ObservableList<SKLArea> {
@@ -292,6 +293,7 @@ class GenController: Controller(), StrictAreaController {
                 initData(file)
                 res = true
                 AppPreferences.recentPath = file.absolutePath
+
                 tableData.map { it.backingArea }.groupBy{ it.kv }.map { it.key to it.value }.forEach {
                     startSq.add(Kv(it.first, it.second.toMutableList()))
                 }
@@ -307,6 +309,8 @@ class GenController: Controller(), StrictAreaController {
             if(!res) error("Ошибка", "Ошибка чтения файла")
         }
     }
+
+    fun updateStrictView() = strictView?.update()
 
 
 }
