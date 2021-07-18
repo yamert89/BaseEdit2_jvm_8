@@ -1,5 +1,5 @@
 @Deprecated("migration", ReplaceWith("roslesinforg.porokhin.areatypes2.GeneralTypes") )
-object DataTypes {
+object DataTypes2 {
 
     val EMPTY = ""
     val KV = "кв"

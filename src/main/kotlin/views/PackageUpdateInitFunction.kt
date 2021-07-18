@@ -7,6 +7,9 @@ import javafx.scene.Node
 import javafx.scene.control.ComboBox
 import javafx.scene.control.Tab
 import javafx.scene.control.TextField
+import roslesinforg.porokhin.areaselector.Attribute
+import roslesinforg.porokhin.areaselector.toAttribute
+import roslesinforg.porokhin.areatypes.GeneralTypes
 import tornadofx.*
 
 class PackageUpdateInitFunction(private val tab: Tab): TabInitFunction() {
@@ -31,10 +34,11 @@ class PackageUpdateInitFunction(private val tab: Tab): TabInitFunction() {
                 fun initComboBoxChangeListener(comboBox: ComboBox<String>, fieldNumber: Int){
                     comboBox.valueProperty().onChange {
                         var newNode : Node? = null
-                        when(it){
-                            DataTypes.KV, DataTypes.CATEGORY_AREA, DataTypes.LESB -> newNode = TextField()
-                            DataTypes.CATEGORY_PROTECTION ->  newNode = ComboBox(DataTypes.categoryProtection.values.toList().plus(DataTypes.EMPTY_CATEGORY_PROTECTION).toObservable()).apply { selectionModel.select(0) }
-                            DataTypes.OZU -> newNode = ComboBox(DataTypes.ozu.values.toList().toObservable()).apply { selectionModel.select(0) }
+
+                        when(it!!.toAttribute()){ //todo null
+                            Attribute.KV, Attribute.CATEGORY, Attribute.LESB -> newNode = TextField()
+                            Attribute.CATEGORY_PROTECTION ->  newNode = ComboBox(GeneralTypes.categoryProtectionLong.values.toList().plus("-").toObservable()).apply { selectionModel.select(0) }
+                            Attribute.OZU -> newNode = ComboBox(GeneralTypes.typesOfProtectionLong.values.toList().toObservable()).apply { selectionModel.select(0) }
                             else -> newNode = TextField().apply{this.isDisable = true}
                         }
                         when(fieldNumber){

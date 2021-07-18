@@ -28,6 +28,7 @@ dependencies {
     implementation("no.tornado:tornadofx:1.7.20")
     implementation(project(":areatypes2"))
     implementation(project(":areaviews2"))
+    implementation(project(":areaselector"))
 }
 
 configure<JavaPluginConvention> {
