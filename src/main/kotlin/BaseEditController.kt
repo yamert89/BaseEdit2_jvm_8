@@ -2,6 +2,7 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.*
 import javafx.scene.layout.Priority
+import roslesinforg.porokhin.areaselector.Attribute
 import roslesinforg.porokhin.areatypes.GeneralTypes
 import roslesinforg.porokhin.areatypes.Kv
 import roslesinforg.porokhin.areaviews.StrictAreaController
@@ -80,29 +81,30 @@ class GenController: Controller(), StrictAreaController {
 
 
     /*
-    * return array where 0-index - code, 1-index - number of rows //todo replace with Param of GeoBaseEditor
+    * return array where 0-index - code, 1-index - number of rows
     * */
     fun executeUtil(param1: Pair<Any?, String>, param2: Pair<Any?, String>, resParam: Pair<Any, String>): Array<Int>{
         println("Записей было ${tableData.size}")
 
         val filteredData = tableData.filter {
-            (if(param1.first != DataTypes.EMPTY && param1.first != null) {
+            (if(param1.first != Attribute.EMPTY && param1.first != null) {
                 when(param1.first){
-                    DataTypes.KV -> it.numberKv == param1.second.toInt()
-                    DataTypes.CATEGORY_AREA -> it.categoryArea == param1.second
-                    DataTypes.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param1.second
-                    DataTypes.OZU -> it.ozu.toString() == param1.second
-                    DataTypes.LESB -> it.lesb == param1.second
+                    Attribute.KV -> it.numberKv == param1.second.toInt()
+                    Attribute.CATEGORY -> it.categoryArea == param1.second
+                    Attribute.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param1.second
+                    Attribute.OZU -> it.ozu.toString() == param1.second
+                    Attribute.LESB -> it.lesb == param1.second
                     else -> throw IllegalArgumentException("invalid param")
                 }
             } else true) &&
                     (if(param2.first != "" && param2.first != null) {
                         when(param2.first){
-                            DataTypes.KV -> it.numberKv == param2.second.toInt()
-                            DataTypes.CATEGORY_AREA -> it.categoryArea == param2.second
-                            DataTypes.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param2.second
-                            DataTypes.OZU -> it.ozu.toString() == param2.second
-                            DataTypes.LESB -> it.lesb == param2.second
+                            Attribute.KV -> it.numberKv == param2.second.toInt()
+                            Attribute.CATEGORY -> it.categoryArea == param2.second
+                            Attribute.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param2.second ||
+                                    it.categoryProtection == 0 && param2.second == Attribute.EMPTY.toString()
+                            Attribute.OZU -> it.ozu.toString() == param2.second || it.ozu == 0 && param2.second == Attribute.EMPTY.toString()
+                            Attribute.LESB -> it.lesb == param2.second
                             else -> throw IllegalArgumentException("invalid param")
                         }
                     } else true)
@@ -119,29 +121,29 @@ class GenController: Controller(), StrictAreaController {
         try {
             tempList.forEach { item ->
                 when(resParam.first){
-                    DataTypes.CATEGORY_AREA -> {
+                    Attribute.CATEGORY -> {
                         val intView = resParam.second.toInt()
                         if(resParam.second.length != 4 || (intView < 1101 || intView > 2556)) return arrayOf(-1)
                         item.value.categoryArea = resParam.second
                     }
-                    DataTypes.CATEGORY_PROTECTION -> {
+                    Attribute.CATEGORY_PROTECTION -> {
                         try {
-                            item.value.categoryProtection = GeneralTypes.categoryProtection.entries.find { it.value == resParam.second }!!.key
+                            item.value.categoryProtection = GeneralTypes.categoryProtectionLong.entries.find { it.value == resParam.second }!!.key
                         }catch (e: Exception){
                             e.printStackTrace()
                             return arrayOf(-1)
                         }
 
                     }
-                    DataTypes.OZU -> {
+                    Attribute.OZU -> {
                         try {
-                            item.value.ozu = GeneralTypes.typesOfProtection.entries.find { it.value == resParam.second }!!.key
+                            item.value.ozu = GeneralTypes.typesOfProtectionLong.entries.find { it.value == resParam.second }!!.key
                         }catch (e: Exception){
                             e.printStackTrace()
                             return arrayOf(-1)
                         }
                     }
-                    DataTypes.LESB -> {
+                    Attribute.LESB -> {
                         if (resParam.second.length != 4) return arrayOf(-1)
                         item.value.lesb = resParam.second
                     }
