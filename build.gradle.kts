@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "BaseEdit2"
-version = "1.4.8"
+version = "1.5.0"
 var buildVersion = 0
 
 
@@ -75,26 +75,32 @@ tasks {
     }
     fun String.prop() = System.getProperty(this)
     val workPlaceConfiguration = "workplaceConfiguration".prop().toBooleanLenient()!!
-    val startPath = if (workPlaceConfiguration) {
+    var startPath = if (workPlaceConfiguration) {
         "pathJarsWorkplace".prop()
     } else {
         "pathJarsHome".prop()
     }
+    startPath = "${startPath}BaseEdit2_main_jar"
     val startFolder = file("${startPath}BaseEdit2_main_jar\\")
     val buildD = "$projectDir/build/libs/"
 
-    val cl = register("cleanStartDir"){
+    val cleanStartDir = register("cleanStartDir"){
         dependsOn(jar)
         startFolder.listFiles()?.filter { it.name.endsWith(".jar") }?.forEach { delete(it.absolutePath) }
     }
+    val copyLists = register<Copy>("copyLists"){
+        dependsOn(cleanStartDir)
+        from(fileTree("${project.parent!!.projectDir}/BaseEdit2_jvm_8/src/main/resources/lists").filter { it.name == "categoryprotectionlong.yml" || it.name == "typesofprotectionlong.yml" })
+        into(file("$startPath/lists"))
+    }
     val copyB = register<Copy>("copyBuild"){
-        dependsOn(cl)
+        dependsOn(cleanStartDir)
         from(file("$buildD/start.cmd"))
         into(startFolder)
     }
 
     register<Copy>("copy") {
-        dependsOn(copyB)
+        dependsOn(copyB, copyLists)
         val archieveName = "BaseEdit2-${project.version}.jar"
         val startF = file("$projectDir/build/libs/start.cmd")
         startF.delete()
