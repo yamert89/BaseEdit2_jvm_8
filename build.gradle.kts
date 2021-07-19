@@ -80,7 +80,6 @@ tasks {
     } else {
         "pathJarsHome".prop()
     }
-    startPath = "${startPath}BaseEdit2_main_jar"
     val startFolder = file("${startPath}BaseEdit2_main_jar\\")
     val buildD = "$projectDir/build/libs/"
 
@@ -91,7 +90,7 @@ tasks {
     val copyLists = register<Copy>("copyLists"){
         dependsOn(cleanStartDir)
         from(fileTree("${project.parent!!.projectDir}/BaseEdit2_jvm_8/src/main/resources/lists").filter { it.name == "categoryprotectionlong.yml" || it.name == "typesofprotectionlong.yml" })
-        into(file("$startPath/lists"))
+        into(file("$startFolder/lists"))
     }
     val copyB = register<Copy>("copyBuild"){
         dependsOn(cleanStartDir)

@@ -1,5 +1,6 @@
 import java.io.*
 import java.math.BigDecimal
+import java.math.MathContext
 import java.math.RoundingMode
 
 class FileExecutor {
@@ -103,7 +104,7 @@ class FileExecutor {
                 write(it.lesb.addZeroes(4))
                 write(it.rawData.data2)
                 write(it.number.addZeroes(3))
-                val area = BigDecimal(it.area.toDouble() * 10).setScale(0).toString()
+                val area = BigDecimal(it.area.toDouble() * 10).round(MathContext.DECIMAL32).setScale(0).toString()
                 write(area.addZeroes(5))
                 write(it.categoryArea.toByteArray(charset))
                 write(it.rawData.data3)
