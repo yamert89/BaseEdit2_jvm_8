@@ -83,9 +83,12 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                     CodeMappingConverter(GeneralTypes::categoryProtectionLong),
                     GeneralTypes.categoryProtectionLong.keys.toList().plus(0).asObservable() ).apply { isSortable = AppPreferences.sorting }
 
-                val kz = readonlyColumn("К. земель", SKLArea::categoryArea).apply { isSortable = AppPreferences.sorting }
+                val kz = readonlyColumn("К. земель", SKLArea::categoryArea).apply {
+                    isSortable = AppPreferences.sorting
+                }
                     kz.cellFormat {
                         text = it
+                        tooltip(GeneralTypes.categoryAreaLong[it.toInt()])
                         style {
                             if (it == "1108" || it == "1201") backgroundColor += c("#036907", 0.3)
                         }
