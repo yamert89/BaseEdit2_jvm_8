@@ -93,13 +93,14 @@ class GenController: Controller(), StrictAreaController {
                 when(param1.first){
                     Attribute.KV -> it.numberKv == param1.second.toInt()
                     Attribute.CATEGORY -> it.categoryArea == param1.second
-                    Attribute.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param1.second
+                    Attribute.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param1.second ||
+                            it.categoryProtection == 0 && param1.second == Attribute.EMPTY.toString()
                     Attribute.OZU -> it.ozu.toString() == param1.second
                     Attribute.LESB -> it.lesb == param1.second
                     else -> throw IllegalArgumentException("invalid param")
                 }
             } else true) &&
-                    (if(param2.first != "" && param2.first != null) {
+                    (if(param2.first != Attribute.EMPTY && param2.first != null) {
                         when(param2.first){
                             Attribute.KV -> it.numberKv == param2.second.toInt()
                             Attribute.CATEGORY -> it.categoryArea == param2.second
