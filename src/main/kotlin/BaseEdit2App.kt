@@ -32,18 +32,29 @@ class BaseEdit2: App(ParentView::class)
 class ParentView : View(){
     private val controller = find(GenController::class)
     private var status = Label()
+    private var forceSaving = false
 
     init {
         title = "BaseEdit2"
-        primaryStage.setOnCloseRequest {
+        primaryStage.setOnCloseRequest { event ->
             AppPreferences.savePreferences()
             if (controller.tableData.isEmpty()) return@setOnCloseRequest
-
-            alert(Alert.AlertType.CONFIRMATION, "Сохранить?", null, ButtonType.OK, ButtonType.NO, owner = primaryStage, title = "Подтверждение"){
-                if (it == ButtonType.NO) return@setOnCloseRequest
-                if (!controller.preSaveCheck()) information("Операция закрытия необратима. Файл будет сохранен с ошибками")
-                controller.save(null)
+            val header = if (controller.preSaveCheck()) "Сохранить?" else "Имеются неисправленные ошибки. Вы уверены, что хотите сохранить?"
+            val save = ButtonType("Сохранить")
+            val no = ButtonType("Выйти без сохранения")
+            val cancel = ButtonType("Отмена")
+            alert(Alert.AlertType.CONFIRMATION, header, null, save, no, cancel, owner = primaryStage, title = "Подтверждение"){
+                when(it){
+                    no -> return@setOnCloseRequest
+                    cancel -> {
+                        event.consume()
+                        return@setOnCloseRequest
+                    }
+                    save -> controller.save(null)
+                }
             }
+
+
         }
 
         primaryStage.setOnShown {
