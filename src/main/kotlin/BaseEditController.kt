@@ -49,7 +49,9 @@ class GenController: Controller(), StrictAreaController {
 
     fun addArea(item: SKLArea) {
         tableData.add(selectedRow, item)
-        findKv(item.numberKv).areas.add(selectedRow, item.backingArea)
+        val kvAreas = findKv(item.numberKv).areas
+
+        kvAreas.add(kvAreas.indexOf(tableData[selectedRow - 1].backingArea) + 1, item.backingArea)
     }
 
     fun delArea(){

@@ -34,7 +34,8 @@ class PackageUpdateInitFunction(private val tab: Tab): TabInitFunction() {
                 fun initComboBoxChangeListener(comboBox: ComboBox<Attribute>, fieldNumber: Int){
                     comboBox.valueProperty().onChange {
                         val newNode : Node = when(it!!){ //todo null
-                            Attribute.KV, Attribute.CATEGORY, Attribute.LESB -> TextField()
+                            Attribute.KV, Attribute.CATEGORY-> TextField()
+                            Attribute.LESB -> TextField().apply { tooltip("4 значное значение") }
                             Attribute.CATEGORY_PROTECTION ->  ComboBox(GeneralTypes.categoryProtectionLong.values.toMutableList()
                                 .apply { if (fieldNumber != 3) add(0, Attribute.EMPTY.toString()) }.toObservable()).apply { selectionModel.select(0) }
                             Attribute.OZU ->  ComboBox(GeneralTypes.typesOfProtectionLong.values.toList().toObservable()).apply { selectionModel.select(0) }
@@ -59,7 +60,7 @@ class PackageUpdateInitFunction(private val tab: Tab): TabInitFunction() {
                 }
 
                 padding = margins
-                val filterParameters = listOf(Attribute.KV, Attribute.CATEGORY, Attribute.CATEGORY_PROTECTION, Attribute.OZU, Attribute.LESB)
+                val filterParameters = listOf(Attribute.EMPTY, Attribute.KV, Attribute.CATEGORY, Attribute.CATEGORY_PROTECTION, Attribute.OZU, Attribute.LESB)
                 hbox {
                     vboxConstraints { margin = margins }
                     label("Отобрать значения:")
