@@ -59,6 +59,7 @@ class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage
                             filters = arrayOf(),
                             owner = primaryStage
                         )
+                        if (list.isEmpty()) return@action
                         val path = list[0].absolutePath
                         runAsyncWithProgress {
                             controller.save(path)
