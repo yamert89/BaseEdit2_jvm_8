@@ -2,27 +2,31 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.*
 import javafx.scene.layout.Priority
+import roslesinforg.porokhin.areaselector.Attribute
+import roslesinforg.porokhin.areatypes.GeneralTypes
+import roslesinforg.porokhin.areatypes.Kv
+import roslesinforg.porokhin.areaviews.StrictAreaController
 import tornadofx.*
 import java.io.File
-import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.Exception
 import kotlin.collections.HashMap
 
-class GenController: Controller() {
+class GenController: Controller(), StrictAreaController {
     private val outputSize: Int = 25
-    val tableData = emptyList<Area>().toMutableList().asObservable()
-    val deletedRows = ArrayDeque<Pair<Int, Area>>()
+    val tableData = emptyList<SKLArea>().toMutableList().asObservable()
+    val deletedRows = ArrayDeque<Pair<Int, SKLArea>>()
     var sumAreasForKv :  Map<Int, Double>? = null
     private var filePath = ""
     var fileOpened = SimpleBooleanProperty(false)
-    var selected: Area? = null
+    var selected: SKLArea? = null
     var selectedRow: Int = 0
-    var selectedCol: TableColumn<Area, *>? = null
-    lateinit var tableView: TableView<Area>
+    var selectedCol: TableColumn<SKLArea, *>? = null
+    lateinit var tableView: TableView<SKLArea>
     var addButton = Button()
     var delButton = addButton
     var saveButton = addButton
@@ -30,10 +34,35 @@ class GenController: Controller() {
     var progress = ProgressBar().apply {
         vgrow = Priority.ALWAYS
     }
+    private var strictView: BE2StrictView? = null
 
-    fun addArea(item: Area) = tableData.add(selectedRow, item)
+    override val startSq = mutableListOf<Kv>().toObservable()
 
-    fun getData(): ObservableList<Area> {
+    override fun <T : View> setStrictView(view: T) {
+        strictView = view as BE2StrictView
+    }
+
+    override fun error(text: String) {
+        println(text)
+        //TODO("Not yet implemented")
+    }
+
+    fun addArea(item: SKLArea) {
+        tableData.add(selectedRow, item)
+        val kvAreas = findKv(item.numberKv).areas
+
+        kvAreas.add(kvAreas.indexOf(tableData[selectedRow - 1].backingArea) + 1, item.backingArea)
+    }
+
+    fun delArea(){
+        val item = tableData[selectedRow]
+        deletedRows.add(selectedRow to item)
+        tableData.removeAt(selectedRow)
+        tableView.selectionModel.select(selectedRow + 1, selectedCol)
+        findKv(item.numberKv).areas.remove(item.backingArea)
+    }
+
+    fun getData(): ObservableList<SKLArea> {
         return tableData
     }
 
@@ -60,23 +89,25 @@ class GenController: Controller() {
         println("Записей было ${tableData.size}")
 
         val filteredData = tableData.filter {
-            (if(param1.first != DataTypes.EMPTY && param1.first != null) {
+            (if(param1.first != Attribute.EMPTY && param1.first != null) {
                 when(param1.first){
-                    DataTypes.KV -> it.numberKv == param1.second.toInt()
-                    DataTypes.CATEGORY_AREA -> it.categoryArea == param1.second
-                    DataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param1.second
-                    DataTypes.OZU -> it.ozu == param1.second
-                    DataTypes.LESB -> it.lesb == param1.second
+                    Attribute.KV -> it.numberKv == param1.second.toInt()
+                    Attribute.CATEGORY -> it.categoryArea == param1.second
+                    Attribute.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param1.second ||
+                            it.categoryProtection == 0 && param1.second == Attribute.EMPTY.toString()
+                    Attribute.OZU -> it.ozu.toString() == param1.second
+                    Attribute.LESB -> it.lesb == param1.second
                     else -> throw IllegalArgumentException("invalid param")
                 }
             } else true) &&
-                    (if(param2.first != "" && param2.first != null) {
+                    (if(param2.first != Attribute.EMPTY && param2.first != null) {
                         when(param2.first){
-                            DataTypes.KV -> it.numberKv == param2.second.toInt()
-                            DataTypes.CATEGORY_AREA -> it.categoryArea == param2.second
-                            DataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param2.second
-                            DataTypes.OZU -> it.ozu == param2.second
-                            DataTypes.LESB -> it.lesb == param2.second
+                            Attribute.KV -> it.numberKv == param2.second.toInt()
+                            Attribute.CATEGORY -> it.categoryArea == param2.second
+                            Attribute.CATEGORY_PROTECTION -> it.categoryProtection.toString() == param2.second ||
+                                    it.categoryProtection == 0 && param2.second == Attribute.EMPTY.toString()
+                            Attribute.OZU -> it.ozu.toString() == param2.second || it.ozu == 0 && param2.second == Attribute.EMPTY.toString()
+                            Attribute.LESB -> it.lesb == param2.second
                             else -> throw IllegalArgumentException("invalid param")
                         }
                     } else true)
@@ -85,34 +116,39 @@ class GenController: Controller() {
 
         println("Изменений ${filteredData}")
 
-        val tempList = HashMap<String, Area>()
+        val tempList = HashMap<String, SKLArea>()
 
         filteredData.forEach { tempList["${it.numberKv}|${it.number}|${it.categoryArea}"] = it }
         if(tempList.isEmpty()) return arrayOf(0)
 
         try {
-            tempList.forEach {
+            tempList.forEach { item ->
                 when(resParam.first){
-                    DataTypes.CATEGORY_AREA -> {
+                    Attribute.CATEGORY -> {
                         val intView = resParam.second.toInt()
                         if(resParam.second.length != 4 || (intView < 1101 || intView > 2556)) return arrayOf(-1)
-                        it.value.categoryArea = resParam.second
+                        item.value.categoryArea = resParam.second
                     }
-                    DataTypes.CATEGORY_PROTECTION -> {
-                        val contKey = DataTypes.categoryProtection.containsKey(resParam.second)
-                        val contValue = DataTypes.categoryProtection.containsValue(resParam.second)
-                        if(!contKey && !contValue) return arrayOf(-1)
-                        it.value.categoryProtection = if(contKey) DataTypes.categoryProtection[resParam.second] else resParam.second
+                    Attribute.CATEGORY_PROTECTION -> {
+                        try {
+                            item.value.categoryProtection = GeneralTypes.categoryProtectionLong.entries.find { it.value == resParam.second }!!.key
+                        }catch (e: Exception){
+                            e.printStackTrace()
+                            return arrayOf(-1)
+                        }
+
                     }
-                    DataTypes.OZU -> {
-                        val conKey = DataTypes.ozu.containsKey(resParam.second)
-                        val contValue = DataTypes.ozu.containsValue(resParam.second)
-                        if(!conKey && !contValue) return arrayOf(-1)
-                        it.value.ozu = if (conKey) DataTypes.ozu[resParam.second] else resParam.second
+                    Attribute.OZU -> {
+                        try {
+                            item.value.ozu = GeneralTypes.typesOfProtectionLong.entries.find { it.value == resParam.second }!!.key
+                        }catch (e: Exception){
+                            e.printStackTrace()
+                            return arrayOf(-1)
+                        }
                     }
-                    DataTypes.LESB -> {
+                    Attribute.LESB -> {
                         if (resParam.second.length != 4) return arrayOf(-1)
-                        it.value.lesb = resParam.second
+                        item.value.lesb = resParam.second
                     }
                 }
             }
@@ -121,7 +157,7 @@ class GenController: Controller() {
             return arrayOf(-1)
         }
 
-        val indexedMap = HashMap<Int, Area>()
+        val indexedMap = HashMap<Int, SKLArea>()
 
         for (i in 0 until tableData.size){
             val area = tableData[i]
@@ -138,18 +174,18 @@ class GenController: Controller() {
         //tableViewEditModel.commit()
         var truncated = false
         val checkSkip = AppPreferences.checkSkipped
-        val checkDuplicate = mutableListOf<Area>()
-        val checkCatProt = mutableListOf<Area>()
-        val checkSkipped = HashMap<Area, Int>()
-        val checkZeroNumber = mutableListOf<Area>()
-        val checkLkWithZero = mutableListOf<Area>()
-        val checkZeroAreas = mutableListOf<Area>()
+        val checkDuplicate = mutableListOf<SKLArea>()
+        val checkCatProt = mutableListOf<SKLArea>()
+        val checkSkipped = HashMap<SKLArea, Int>()
+        val checkZeroNumber = mutableListOf<SKLArea>()
+        val checkLkWithZero = mutableListOf<SKLArea>()
+        val checkZeroAreas = mutableListOf<SKLArea>()
         val map = mutableMapOf<Int, MutableList<Int>>()
         tableData.forEach {
-            if (it.categoryProtection == "-") checkCatProt.add(it)
+            if (it.categoryProtection == 0) checkCatProt.add(it)
             val intVal = it.categoryArea.toInt()
-            if (intVal in 1108..1207 && it.area == 0.0) checkLkWithZero.add(it)
-            if (it.area == 0.0 && it.categoryProtection != DataTypes.categoryProtection["400000"]) checkZeroAreas.add(it)
+            if (intVal in 1108..1207 && it.area == 0f) checkLkWithZero.add(it)
+            if (it.area == 0f && it.categoryProtection != 400000) checkZeroAreas.add(it)
             if(it.number == 0) checkZeroNumber.add(it)
             if (!map.containsKey(it.numberKv)) map[it.numberKv] = mutableListOf()
             map[it.numberKv]!!.add(it.number)
@@ -174,7 +210,7 @@ class GenController: Controller() {
 
             }
         }
-        val sortedCheckSkipped =  TreeMap<Area, Int>().apply {
+        val sortedCheckSkipped =  TreeMap<SKLArea, Int>().apply {
             if (checkSkipped.size > outputSize){
                 truncated = true
                 val it = checkSkipped.iterator()
@@ -184,7 +220,7 @@ class GenController: Controller() {
 
         }
 
-        fun MutableList<Area>.truncate(): MutableList<Area>{
+        fun MutableList<SKLArea>.truncate(): MutableList<SKLArea>{
             if (size > outputSize){
                 truncated = true
                 return subList(0, outputSize - 1)
@@ -262,7 +298,12 @@ class GenController: Controller() {
                 initData(file)
                 res = true
                 AppPreferences.recentPath = file.absolutePath
+
+                tableData.map { it.backingArea }.groupBy{ it.kv }.map { it.key to it.value }.forEach {
+                    startSq.add(Kv(it.first, it.second.toMutableList()))
+                }
             }catch (e: Exception){
+                e.printStackTrace()
                 return@runAsyncWithProgress
             }
             println("end init")
@@ -273,4 +314,8 @@ class GenController: Controller() {
             if(!res) error("Ошибка", "Ошибка чтения файла")
         }
     }
+
+    fun updateStrictView() = strictView?.update()
+
+
 }

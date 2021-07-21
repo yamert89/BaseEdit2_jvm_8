@@ -1,15 +1,16 @@
 package views
 
-import Area
+import SKLArea
 import GenController
 import Notification
+import ParentView
 import javafx.geometry.Insets
 import javafx.scene.control.MenuBar
 import javafx.stage.Stage
 import tornadofx.*
 import java.nio.file.Paths
 
-class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage: Stage): InitFunction<MenuBar> {
+class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage: Stage, private val mainView: ParentView): InitFunction<MenuBar> {
     private val controller = find(GenController::class)
     private val notification = find(Notification::class)
     override fun getInitial(): MenuBar.() -> Unit {
@@ -30,6 +31,7 @@ class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage
 
                         if (files.isEmpty()) return@action
                         controller.openFile(files[0])
+                        if (AppPreferences.checkAreas) mainView.openStrictAreaView()
                     }
                 }
                 val recentPath = Paths.get(AppPreferences.recentPath)
@@ -37,6 +39,7 @@ class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage
                 if (recentPath.toString().isNotEmpty() && recentPath.toFile().exists()) item("Открыть последний: <${recentPath.fileName}>"){
                     action {
                         controller.openFile(recentPath.toFile())
+                        if (AppPreferences.checkAreas) mainView.openStrictAreaView()
                     }
                 }
                 item("Сохранить"){
@@ -71,7 +74,7 @@ class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage
                             notification.notif("Нет удалённых выделов")
                             return@action
                         }
-                        val pairOfArea = controller.deletedRows.pollLast() as Pair<Int, Area>
+                        val pairOfArea = controller.deletedRows.pollLast() as Pair<Int, SKLArea>
                         controller.tableData[pairOfArea.first] = pairOfArea.second
                         notification.notif("Выдел ${pairOfArea.second.number} квартала ${pairOfArea.second.numberKv} восстановлен")
                     }
@@ -86,7 +89,7 @@ class MenuBarInitFunction(private val menuBar: MenuBar, private val primaryStage
                 item("О программе"){
                     action {
                         information(
-                            "BaseEdit2 (SKL редактор)  v.1.4.8",
+                            "BaseEdit2 (SKL редактор)  v.1.5.0",
                             "Порохин Александр\n\nРОСЛЕСИНФОРГ 2020",
                             owner = primaryStage
                         )

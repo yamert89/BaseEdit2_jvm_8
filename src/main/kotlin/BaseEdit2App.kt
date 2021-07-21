@@ -31,31 +31,42 @@ class BaseEdit2: App(ParentView::class)
 
 class ParentView : View(){
     private val controller = find(GenController::class)
-    private val model: AreaModel by inject()
     private var status = Label()
+    private var forceSaving = false
 
     init {
         title = "BaseEdit2"
-        primaryStage.setOnCloseRequest {
+        primaryStage.setOnCloseRequest { event ->
             AppPreferences.savePreferences()
             if (controller.tableData.isEmpty()) return@setOnCloseRequest
-
-            alert(Alert.AlertType.CONFIRMATION, "Сохранить?", null, ButtonType.OK, ButtonType.NO, owner = primaryStage, title = "Подтверждение"){
-                if (it == ButtonType.NO) return@setOnCloseRequest
-                if (!controller.preSaveCheck()) information("Операция закрытия необратима. Файл будет сохранен с ошибками")
-                controller.save(null)
+            val header = if (controller.preSaveCheck()) "Сохранить?" else "Имеются неисправленные ошибки. Вы уверены, что хотите сохранить?"
+            val save = ButtonType("Сохранить")
+            val no = ButtonType("Выйти без сохранения")
+            val cancel = ButtonType("Отмена")
+            alert(Alert.AlertType.CONFIRMATION, header, null, save, no, cancel, owner = primaryStage, title = "Подтверждение"){
+                when(it){
+                    no -> return@setOnCloseRequest
+                    cancel -> {
+                        event.consume()
+                        return@setOnCloseRequest
+                    }
+                    save -> controller.save(null)
+                }
             }
+
+
         }
 
         primaryStage.setOnShown {
             primaryStage.icons.add(resources.image("Desktop.png"))
         }
+
     }
 
 
     override val root = vbox {
 
-        controller.menuBar = menubar { MenuBarInitFunction(this, primaryStage).getInitial().invoke(this) }
+        controller.menuBar = menubar { MenuBarInitFunction(this, primaryStage, this@ParentView).getInitial().invoke(this) }
 
         hbox {
             ButtonsPaneInitFunction(this, this@ParentView).getInitial().invoke(this)
@@ -94,5 +105,7 @@ class ParentView : View(){
 
         find(Notification::class, Pair(PAR_LABEL, status)) // create notification with label
     }
+
+    fun openStrictAreaView() = find<BE2StrictView>().openWindow(owner = this.currentWindow)
 }
 

@@ -2,6 +2,7 @@ package views
 
 import AppPreferences
 import GenController
+import ParentView
 import javafx.geometry.Insets
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonType
@@ -9,6 +10,7 @@ import tornadofx.*
 
 class Preferences : Fragment("Настройки"){
     private val controller = find(GenController::class)
+    private val mainView: ParentView by inject()
 
     override val root = pane {
         val m10 = Insets(10.0)
@@ -27,19 +29,8 @@ class Preferences : Fragment("Настройки"){
                 vboxConstraints { margin = m10 }
                 if (controller.tableData.isEmpty()) return@checkbox
                 AppPreferences.checkAreasProperty.onChange {
-                    if (it) alert(
-                        Alert.AlertType.CONFIRMATION,
-                        "Подтверждение",
-                        "Посчитать текущие площади как начальные?",
-                        ButtonType.YES,
-                        ButtonType.NO,
-                        owner = primaryStage,
-                        title = "?"
-                    ) { btnType ->
-                        if (btnType == ButtonType.YES) {
-                            controller.sumAreasForKv = controller.calculateAreasForKv()
-                        } else if (btnType == ButtonType.NO) close()
-
+                    if (it) {
+                        mainView.openStrictAreaView()
                     }
                 }
             }

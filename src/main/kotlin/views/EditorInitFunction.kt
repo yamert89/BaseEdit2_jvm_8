@@ -1,23 +1,28 @@
 package views
 
-import Area
+import SKLArea
 import GenController
+import com.sun.org.apache.bcel.internal.classfile.Code
 import converters.AreaConverter
+import converters.CategoryProtectionConverter
+import converters.CodeMappingConverter
 import converters.NumberConverter
 import javafx.beans.property.Property
+import javafx.collections.ObservableList
 import javafx.scene.control.Tab
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
-import javafx.scene.layout.Priority
+import javafx.scene.control.cell.ComboBoxTableCell
 import javafx.scene.paint.Color
+import javafx.util.StringConverter
+import roslesinforg.porokhin.areatypes.GeneralTypes
 import tornadofx.*
 import java.lang.NumberFormatException
-import kotlin.error
 
 class EditorInitFunction(private val tab: Tab): TabInitFunction() {
 
     private val controller = find(GenController::class)
-    private var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
+    private var tableViewEditModel: TableViewEditModel<SKLArea> by singleAssign()
 
     override fun getInitial() = tab.initial()
 
@@ -32,8 +37,8 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                     borderColor += box(Color.GRAY)
                 }
                 isEditable = true
-                readonlyColumn("Кв", Area::numberKv).apply { isSortable = AppPreferences.sorting }
-                column("Выд", Area::number).apply {
+                readonlyColumn("Кв", SKLArea::numberKv).apply { isSortable = AppPreferences.sorting }
+                column("Выд", SKLArea::number).apply {
                     makeEditable(NumberConverter())
                     isSortable = AppPreferences.sorting
 
@@ -64,26 +69,33 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
                 }
 
 
-                column("Площадь", Area::area).apply {
+                column("Площадь", SKLArea::area).apply {
                     makeEditable(AreaConverter())
-                    setOnEditCommit { columnOnEdit(it, 2) { it.newValue > 9999 || it.newValue < 0 } }
+                    setOnEditCommit {
+                        controller.updateStrictView()
+                        columnOnEdit(it, 2) { it.newValue > 9999 || it.newValue < 0 }
+                    }
                     isSortable = AppPreferences.sorting
                     //setOnEditCancel { columnOnEdit(it, 2){it.newValue > 9999 || it.newValue < 0} }
 
                 }
-                column("К. защитности", Area::categoryProtection).makeEditable()
-                    .useComboBox(DataTypes.categoryProtection.values.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
+                column("К. защитности", SKLArea::categoryProtection).useComboBox(
+                    CodeMappingConverter(GeneralTypes::categoryProtectionLong),
+                    GeneralTypes.categoryProtectionLong.keys.toList().plus(0).asObservable() ).apply { isSortable = AppPreferences.sorting }
 
-                val kz = readonlyColumn("К. земель", Area::categoryArea).apply { isSortable = AppPreferences.sorting }
+                val kz = readonlyColumn("К. земель", SKLArea::categoryArea).apply {
+                    isSortable = AppPreferences.sorting
+                }
                     kz.cellFormat {
                         text = it
+                        tooltip(GeneralTypes.categoryAreaLong[it.toInt()])
                         style {
                             if (it == "1108" || it == "1201") backgroundColor += c("#036907", 0.3)
                         }
                     }
 
-                column("ОЗУ", Area::ozu).makeEditable().useComboBox(DataTypes.ozu.values.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
-                column("lesb", Area::lesb).apply {
+                column("ОЗУ", SKLArea::ozu).useComboBox(CodeMappingConverter(GeneralTypes::typesOfProtectionLong), GeneralTypes.typesOfProtectionLong.keys.toList().asObservable()).apply { isSortable = AppPreferences.sorting }
+                column("lesb", SKLArea::lesb).apply {
                     makeEditable()
                     isSortable = AppPreferences.sorting
                     setOnEditCommit {
@@ -115,7 +127,17 @@ class EditorInitFunction(private val tab: Tab): TabInitFunction() {
             }
         }
     }
-    private fun <T> TableView<Area>.columnOnEdit(editEvent: TableColumn.CellEditEvent<Area, T>, idx: Int,condition: () -> Boolean) {
+
+    fun <S, T> TableColumn<S, T>.useComboBox(converter: StringConverter<T>? = null, items: ObservableList<T>, afterCommit: (TableColumn.CellEditEvent<S, T?>) -> Unit = {}) = apply {
+        cellFactory = if (converter == null) ComboBoxTableCell.forTableColumn(items) else ComboBoxTableCell.forTableColumn(converter, items)
+        setOnEditCommit {
+            val property = it.tableColumn.getCellObservableValue(it.rowValue) as Property<T?>
+            property.value = it.newValue
+            afterCommit(it)
+        }
+    }
+
+    private fun <T> TableView<SKLArea>.columnOnEdit(editEvent: TableColumn.CellEditEvent<SKLArea, T>, idx: Int, condition: () -> Boolean) {
         if (condition()) {
             tornadofx.error("Невалидное значение")
             editModel.rollbackSelected()
